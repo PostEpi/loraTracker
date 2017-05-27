@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<project>
+  <fileVersion>2</fileVersion>
+  <fileChecksum>1251253553</fileChecksum>
+  <configuration>
+    <name>STM3210C_EVAL</name>
+    <outputs>
+      <file>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\utilities\timeServer.c</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_msp.pbi</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\Project.pbd</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm3210c_loraTracker.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\startup_stm32f107xc.o</file>
+      <file>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_rcc_ex.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\utilities\timeServer.h</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_rcc_ex.o</file>
+      <file>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\utilities\utilities.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_rcc.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_tim.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\utilities\utilities.h</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\system_stm32f1xx.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_dma.pbi</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\main.o</file>
+      <file>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_uart.c</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_rcc_ex.pbi</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_gpio.pbi</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_cortex.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_dma.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_it.pbi</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_rcc.pbi</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_it.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\timeServer.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_uart.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\timeServer.pbi</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\utilities.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_rcc.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\timtimer.pbi</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\timtimer.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_uart.pbi</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Exe\Project.out</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\utilities.pbi</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_tim.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm3210c_loraTracker.pbi</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal.pbi</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_msp.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\main.pbi</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\system_stm32f1xx.pbi</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_tim.pbi</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_gpio.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Exe\Project.hex</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_cortex.pbi</file>
+      <file>$PROJ_DIR$\startup_stm32f107xc.s</file>
+      <file>$PROJ_DIR$\..\Src\main.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_gpio.c</file>
+      <file>$PROJ_DIR$\..\Src\stm32f1xx_hal_msp.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\..\..\Drivers\BSP\STM3210C_LoraTracker\stm3210c_loraTracker.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_cortex.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_dma.c</file>
+      <file>$PROJ_DIR$\..\Src\timtimer.c</file>
+      <file>$PROJ_DIR$\..\Src\system_stm32f1xx.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal.c</file>
+      <file>$PROJ_DIR$\..\Src\stm32f1xx_it.c</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_rtc.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_rtc_ex.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_rtc.pbi</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_rtc_ex.pbi</file>
+      <file>$PROJ_DIR$\..\Src\rtc.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_tim_ex.c</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_tim_ex.pbi</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_tim_ex.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\rtc.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\rtc.pbi</file>
+      <file>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_pwr.c</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_pwr.o</file>
+      <file>$PROJ_DIR$\STM3210C_EVAL\Obj\stm32f1xx_hal_pwr.pbi</file>
+      <file>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_rtc.c</file>
+      <file>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_rtc_ex.c</file>
+    </outputs>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\utilities\timeServer.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 26</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 23</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_rcc_ex.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 16</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 7</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\utilities\utilities.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 33</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 27</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_rcc.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 21</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 28</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_tim.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 40</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 34</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_uart.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 31</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 24</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\STM3210C_EVAL\Exe\Project.out</name>
+      <outputs>
+        <tool>
+          <name>OBJCOPY</name>
+          <file> 42</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>[ROOT_NODE]</name>
+      <outputs>
+        <tool>
+          <name>ILINK</name>
+          <file> 32</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\startup_stm32f107xc.s</name>
+      <outputs>
+        <tool>
+          <name>AARM</name>
+          <file> 4</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Src\main.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 38</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 14</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_gpio.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 17</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 41</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Src\stm32f1xx_hal_msp.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 1</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 37</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\BSP\STM3210C_LoraTracker\stm3210c_loraTracker.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 35</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 3</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_cortex.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 43</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 18</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_dma.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 13</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 19</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Src\timtimer.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 29</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 30</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Src\system_stm32f1xx.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 39</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 12</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 36</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 25</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Src\stm32f1xx_it.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 20</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 22</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\Src\rtc.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 64</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 63</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_tim_ex.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 61</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 62</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_pwr.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 67</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 66</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_rtc.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 57</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 55</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_rtc_ex.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 58</file>
+        </tool>
+        <tool>
+          <name>ICCARM</name>
+          <file> 56</file>
+        </tool>
+      </outputs>
+    </file>
+  </configuration>
+</project>
+
+

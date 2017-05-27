@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<Workspace>
+  <ConfigDictionary>
+    
+  <CurrentConfigs><Project>Project/STM3210C_EVAL</Project></CurrentConfigs></ConfigDictionary>
+  <Desktop>
+    <Static>
+      <Build>
+        
+        
+        
+        
+      <ColumnWidth0>20</ColumnWidth0><ColumnWidth1>1395</ColumnWidth1><ColumnWidth2>372</ColumnWidth2><ColumnWidth3>93</ColumnWidth3></Build>
+      <Workspace>
+        <ColumnWidths>
+          
+          
+          
+          
+        <Column0>306</Column0><Column1>27</Column1><Column2>27</Column2><Column3>27</Column3></ColumnWidths>
+      </Workspace>
+    <TerminalIO/><Debug-Log><ColumnWidth0>20</ColumnWidth0><ColumnWidth1>1861</ColumnWidth1></Debug-Log></Static>
+    <Windows>
+      
+      
+    <Wnd0>
+        <Tabs>
+          <Tab>
+            <Identity>TabID-19656-19666</Identity>
+            <TabName>Build</TabName>
+            <Factory>Build</Factory>
+            <Session/>
+          </Tab>
+        <Tab><Identity>TabID-4767-23425</Identity><TabName>Debug Log</TabName><Factory>Debug-Log</Factory><Session/></Tab></Tabs>
+        
+      <SelectedTab>0</SelectedTab></Wnd0><Wnd1>
+        <Tabs>
+          <Tab>
+            <Identity>TabID-30404-19669</Identity>
+            <TabName>Workspace</TabName>
+            <Factory>Workspace</Factory>
+            <Session>
+              
+            <NodeDict><ExpandedNode>Project</ExpandedNode><ExpandedNode>Project/Drivers</ExpandedNode><ExpandedNode>Project/Drivers/BSP</ExpandedNode><ExpandedNode>Project/Drivers/BSP/STM3210C_LoraTracker</ExpandedNode><ExpandedNode>Project/Drivers/CMSIS</ExpandedNode><ExpandedNode>Project/Drivers/STM32F1xx_HAL_Driver</ExpandedNode><ExpandedNode>Project/Middlewares</ExpandedNode><ExpandedNode>Project/Middlewares/Third_Party</ExpandedNode><ExpandedNode>Project/Middlewares/Third_Party/utilities</ExpandedNode><ExpandedNode>Project/application</ExpandedNode><ExpandedNode>Project/application/EWARM</ExpandedNode><ExpandedNode>Project/application/User</ExpandedNode></NodeDict></Session>
+          </Tab>
+        </Tabs>
+        
+      <SelectedTab>0</SelectedTab></Wnd1></Windows>
+    <Editor>
+      
+      
+      
+      
+    <Pane><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\Inc\main.h</Filename><XPos>0</XPos><YPos>21</YPos><SelStart>2631</SelStart><SelEnd>2631</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\Src\stm32f1xx_it.c</Filename><XPos>0</XPos><YPos>0</YPos><SelStart>0</SelStart><SelEnd>0</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\..\..\..\..\..\Drivers\BSP\STM3210C_LoraTracker\stm3210c_loraTracker.h</Filename><XPos>0</XPos><YPos>64</YPos><SelStart>2868</SelStart><SelEnd>2868</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_uart.c</Filename><XPos>0</XPos><YPos>665</YPos><SelStart>26817</SelStart><SelEnd>26817</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_tim.h</Filename><XPos>0</XPos><YPos>1136</YPos><SelStart>52866</SelStart><SelEnd>52866</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\..\..\..\..\..\Drivers\BSP\STM3210C_LoraTracker\stm3210c_loraTracker.c</Filename><XPos>0</XPos><YPos>297</YPos><SelStart>11764</SelStart><SelEnd>11764</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_rcc.c</Filename><XPos>0</XPos><YPos>481</YPos><SelStart>19660</SelStart><SelEnd>19660</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\Inc\loratracker.h</Filename><XPos>0</XPos><YPos>0</YPos><SelStart>441</SelStart><SelEnd>441</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\..\..\..\..\..\..\..\en.stm32cubef1\STM32Cube_FW_F1_V1.4.0\Projects\STM3210C_EVAL\Applications\loraTracker\application\Src\main.c</Filename><XPos>0</XPos><YPos>173</YPos><SelStart>7331</SelStart><SelEnd>7331</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\Src\system_stm32f1xx.c</Filename><XPos>0</XPos><YPos>204</YPos><SelStart>8161</SelStart><SelEnd>8161</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\utilities\timeServer.c</Filename><XPos>0</XPos><YPos>327</YPos><SelStart>8871</SelStart><SelEnd>8871</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\Src\timtimer.c</Filename><XPos>0</XPos><YPos>41</YPos><SelStart>1627</SelStart><SelEnd>1627</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\Src\stm32f1xx_hal_msp.c</Filename><XPos>0</XPos><YPos>488</YPos><SelStart>20238</SelStart><SelEnd>20238</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\..\..\..\..\..\Drivers\CMSIS\Device\ST\STM32F1xx\Include\stm32f103xe.h</Filename><XPos>0</XPos><YPos>720</YPos><SelStart>27175</SelStart><SelEnd>27175</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\..\..\..\..\..\Drivers\CMSIS\Device\ST\STM32F1xx\Include\stm32f1xx.h</Filename><XPos>0</XPos><YPos>140</YPos><SelStart>7280</SelStart><SelEnd>7291</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\Src\main.c</Filename><XPos>0</XPos><YPos>136</YPos><SelStart>5812</SelStart><SelEnd>5812</SelEnd></Tab><ActiveTab>15</ActiveTab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal.c</Filename><XPos>0</XPos><YPos>366</YPos><SelStart>11860</SelStart><SelEnd>11860</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\..\..\..\..\..\Drivers\CMSIS\Device\ST\STM32F1xx\Include\stm32f105xc.h</Filename><XPos>0</XPos><YPos>755</YPos><SelStart>29757</SelStart><SelEnd>29757</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\startup_stm32f107xc.s</Filename><XPos>0</XPos><YPos>349</YPos><SelStart>13687</SelStart><SelEnd>13687</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\Src\rtc.c</Filename><XPos>0</XPos><YPos>19</YPos><SelStart>988</SelStart><SelEnd>988</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\Inc\rtc.h</Filename><XPos>0</XPos><YPos>0</YPos><SelStart>609</SelStart><SelEnd>617</SelEnd></Tab></Pane><ActivePane>0</ActivePane><Sizes><Pane><X>1000000</X><Y>1000000</Y></Pane></Sizes><SplitMode>1</SplitMode></Editor>
+    <Positions>
+      
+      
+      
+      
+      
+    <Top><Row0><Sizes><Toolbar-04dd4ca0><key>iaridepm.enu1</key></Toolbar-04dd4ca0></Sizes></Row0><Row1><Sizes/></Row1></Top><Left><Row0><Sizes><Wnd1><Rect><Top>-2</Top><Left>-2</Left><Bottom>673</Bottom><Right>397</Right><x>-2</x><y>-2</y><xscreen>200</xscreen><yscreen>200</yscreen><sizeHorzCX>129618</sizeHorzCX><sizeHorzCY>218341</sizeHorzCY><sizeVertCX>258587</sizeVertCX><sizeVertCY>736900</sizeVertCY></Rect></Wnd1></Sizes></Row0></Left><Right><Row0><Sizes/></Row0></Right><Bottom><Row0><Sizes><Wnd0><Rect><Top>-2</Top><Left>-2</Left><Bottom>198</Bottom><Right>1545</Right><x>-2</x><y>-2</y><xscreen>1547</xscreen><yscreen>200</yscreen><sizeHorzCX>1002592</sizeHorzCX><sizeHorzCY>218341</sizeHorzCY><sizeVertCX>129618</sizeVertCX><sizeVertCY>218341</sizeVertCY></Rect></Wnd0></Sizes></Row0></Bottom><Float><Sizes/></Float></Positions>
+  </Desktop>
+</Workspace>
+
+
