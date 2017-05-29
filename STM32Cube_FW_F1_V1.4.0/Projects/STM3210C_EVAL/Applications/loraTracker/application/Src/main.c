@@ -58,9 +58,6 @@ int DebugFlag = 0xf;
 UART_HandleTypeDef UartHandle;
 
 
-// temp
-uint8_t aShowTime[50] = {0};
-uint8_t aShowDate[50] = {0};
 
 /* Private function prototypes -----------------------------------------------*/
 #ifdef __GNUC__

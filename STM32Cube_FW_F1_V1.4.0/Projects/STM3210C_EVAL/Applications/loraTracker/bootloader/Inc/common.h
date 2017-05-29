@@ -43,6 +43,10 @@
 #include "stm32f1xx.h"
 #include "stm3210c_loraTracker.h"
 
+
+// to prevent FLASH_BASE from changing address
+#define BSP_BOOTLOADER
+
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Constants used by Serial Command Line Mode */

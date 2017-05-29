@@ -43,8 +43,7 @@
  extern "C" {
 #endif
 
-// to prevent FLASH_BASE from changing address
-#define BSP_BOOT_LOADER
+
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
@@ -92,12 +91,9 @@
   *        (when HSE is used as system clock source, directly or through the PLL).  
   */
 
-#define BSP_CLOCK_SOURCE_12M // wara : configure crystal oscillator which has 12Mhz.
-
-
 #if !defined  (HSE_VALUE) 
 #if defined(USE_STM3210C_EVAL)
-  #if defined(BSP_CLOCK_SOURCE_12M)
+  #if defined(BSP_HSE_EXTERNEL_12M)
     #define HSE_VALUE    ((uint32_t)12000000) /*!< Value of the External oscillator in Hz */
   #else
     #define HSE_VALUE    ((uint32_t)25000000) /*!< Value of the External oscillator in Hz */

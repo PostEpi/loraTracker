@@ -397,22 +397,22 @@ typedef enum
 /**
  * @brief Definition for COM port1, connected to USART2
  */ 
-#define EVAL_COM1                        USART2
-#define EVAL_COM1_CLK_ENABLE()           __HAL_RCC_USART2_CLK_ENABLE()
-#define EVAL_COM1_CLK_DISABLE()          __HAL_RCC_USART2_CLK_DISABLE()
+#define EVAL_COM1                        USART1
+#define EVAL_COM1_CLK_ENABLE()           __HAL_RCC_USART1_CLK_ENABLE()
+#define EVAL_COM1_CLK_DISABLE()          __HAL_RCC_USART1_CLK_DISABLE()
 
 #define AFIOCOM1_CLK_ENABLE()            __HAL_RCC_AFIO_CLK_ENABLE()
 #define AFIOCOM1_CLK_DISABLE()           __HAL_RCC_AFIO_CLK_DISABLE()
 
-#define EVAL_COM1_TX_PIN                 GPIO_PIN_5             /* PD.05*/
-#define EVAL_COM1_TX_GPIO_PORT           GPIOD
-#define EVAL_COM1_TX_GPIO_CLK_ENABLE()   __HAL_RCC_GPIOD_CLK_ENABLE()
-#define EVAL_COM1_TX_GPIO_CLK_DISABLE()  __HAL_RCC_GPIOD_CLK_DISABLE()
+#define EVAL_COM1_TX_PIN                 GPIO_PIN_9             /* PD.05*/
+#define EVAL_COM1_TX_GPIO_PORT           GPIOA
+#define EVAL_COM1_TX_GPIO_CLK_ENABLE()   __HAL_RCC_GPIOA_CLK_ENABLE()
+#define EVAL_COM1_TX_GPIO_CLK_DISABLE()  __HAL_RCC_GPIOA_CLK_DISABLE()
 
-#define EVAL_COM1_RX_PIN                 GPIO_PIN_6             /* PD.06*/
-#define EVAL_COM1_RX_GPIO_PORT           GPIOD
-#define EVAL_COM1_RX_GPIO_CLK_ENABLE()   __HAL_RCC_GPIOD_CLK_ENABLE()
-#define EVAL_COM1_RX_GPIO_CLK_DISABLE()  __HAL_RCC_GPIOD_CLK_DISABLE()
+#define EVAL_COM1_RX_PIN                 GPIO_PIN_10             /* PD.06*/
+#define EVAL_COM1_RX_GPIO_PORT           GPIOA
+#define EVAL_COM1_RX_GPIO_CLK_ENABLE()   __HAL_RCC_GPIOA_CLK_ENABLE()
+#define EVAL_COM1_RX_GPIO_CLK_DISABLE()  __HAL_RCC_GPIOA_CLK_DISABLE()
 
 #define EVAL_COM1_IRQn                   USART2_IRQn
 

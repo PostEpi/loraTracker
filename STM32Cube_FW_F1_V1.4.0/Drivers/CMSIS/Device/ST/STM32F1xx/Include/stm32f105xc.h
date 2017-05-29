@@ -769,7 +769,7 @@ typedef struct
   * @{
   */
 
-#if defined(BSP_BOOTLOAER)
+#if defined(BSP_BOOTLOADER)
 #define FLASH_BASE            ((uint32_t)0x08000000) /*!< FLASH base address in the alias region */
 #else
 #define FLASH_BASE            ((uint32_t)0x08004000) /*!< FLASH base address in the alias region */

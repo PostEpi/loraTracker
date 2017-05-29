@@ -97,7 +97,7 @@ int main(void)
     //BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_GPIO);
 
     /* Test if Key push-button on STM3210C-EVAL RevC Board is pressed */
-    if (BSP_PB_GetState(BUTTON_KEY) == GPIO_PIN_RESET)
+    //if (BSP_PB_GetState(BUTTON_KEY) == GPIO_PIN_RESET)
     {
         /* Initialise Flash */
         FLASH_If_Init();
@@ -141,15 +141,23 @@ void SystemClock_Config(void)
 
 /* Enable HSE Oscillator and activate PLL with HSE as source */
 
-#if defined(BSP_CLOCK_SOURCE_12M)
+#if defined(BSP_HSE_EXTERNEL_12M)
+    // oscinitstruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+    // oscinitstruct.HSEState = RCC_HSE_ON;
+    // oscinitstruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+    // oscinitstruct.PLL.PLLState = RCC_PLL_ON;
+    // oscinitstruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+    // oscinitstruct.PLL.PLLMUL = RCC_PLL_MUL6;
+    
+
     oscinitstruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
     oscinitstruct.HSEState = RCC_HSE_ON;
     oscinitstruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
-    //oscinitstruct.Prediv1Source = RCC_PREDIV1_SOURCE_PLL2;
     oscinitstruct.PLL.PLLState = RCC_PLL_ON;
     oscinitstruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
     oscinitstruct.PLL.PLLMUL = RCC_PLL_MUL6;
-    oscinitstruct.PLL2.PLL2State = RCC_PLL2_ON;
+    oscinitstruct.Prediv1Source = RCC_PREDIV1_SOURCE_PLL2;
+    oscinitstruct.PLL2.PLL2State = RCC_PLL2_OFF;
     oscinitstruct.PLL2.PLL2MUL = RCC_PLL2_MUL8;
     oscinitstruct.PLL2.HSEPrediv2Value = RCC_HSE_PREDIV2_DIV5;
 #else
