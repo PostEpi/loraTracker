@@ -56,12 +56,13 @@
  extern "C" {
 #endif 
 
-/* Includes ------------------------------------------------------------------*/
-#include "stm32f1xx_hal.h"
 
 #undef RCC_CR_PLL2ON  
 #define BSP_V500_TEST
 #define BSP_HSE_EXTERNEL_12M
+
+/* Includes ------------------------------------------------------------------*/
+#include "stm32f1xx_hal.h"
 
 
 /** @defgroup STM3210C_EVAL_Exported_Types Exported Types

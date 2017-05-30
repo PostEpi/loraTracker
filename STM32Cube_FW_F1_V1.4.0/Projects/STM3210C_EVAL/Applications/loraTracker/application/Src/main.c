@@ -140,16 +140,22 @@ int main(void)
     }
 
     /* Output a message on Hyperterminal using printf function */
-    printf("\n\r UART Printf Example: retarget the C library printf function to the UART\n\r");
-    printf("** Test finished successfully. ** \n\r");
+    printf("\n\r DEBUG : Retarget the debug function to the UART1\n\r");
 
     RTC_init();
     TIM_Init();
 
+	ECMD_Init();
+	//LCMD_Init();
+	GCMD_Init();
 
     /* Infinite loop */
     while (1)
     {
+        //USER_Process();
+		ECMD_Process();
+		//LCMD_Process();
+		GCMD_Process();
     }
 }
 

@@ -924,7 +924,34 @@
     <group>
       <name>User</name>
       <file>
+        <name>$PROJ_DIR$\..\Src\circledistance.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\Src\ecom.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\Src\ecommand.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\Src\gcom.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\Src\gcommand.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\Src\lcom.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\Src\lcommand.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\Src\main.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\Src\nmea.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\Src\rqueue.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\Src\rtc.c</name>
@@ -937,6 +964,12 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\Src\timtimer.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\Src\tiny_vsnprintf.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\Src\vdb.c</name>
       </file>
     </group>
   </group>

@@ -43,7 +43,7 @@
  extern "C" {
 #endif
 
-
+#define BSP_HSE_EXTERNEL_12M
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
@@ -92,15 +92,11 @@
   */
 
 #if !defined  (HSE_VALUE) 
-#if defined(USE_STM3210C_EVAL)
   #if defined(BSP_HSE_EXTERNEL_12M)
     #define HSE_VALUE    ((uint32_t)12000000) /*!< Value of the External oscillator in Hz */
   #else
-    #define HSE_VALUE    ((uint32_t)25000000) /*!< Value of the External oscillator in Hz */
+    #define HSE_VALUE    ((uint32_t)8000000) /*!< Value of the External oscillator in Hz */
   #endif 
-#else
-  #define HSE_VALUE    ((uint32_t)8000000) /*!< Value of the External oscillator in Hz */
-#endif
 #endif /* HSE_VALUE */
 
 #if !defined  (HSE_STARTUP_TIMEOUT)
