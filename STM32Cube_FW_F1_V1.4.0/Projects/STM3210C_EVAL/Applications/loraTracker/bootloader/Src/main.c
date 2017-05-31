@@ -141,7 +141,7 @@ void SystemClock_Config(void)
 
 /* Enable HSE Oscillator and activate PLL with HSE as source */
 
-#if defined(BSP_HSE_EXTERNEL_12M)
+#if defined(BSP_V500_TEST)
     // oscinitstruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
     // oscinitstruct.HSEState = RCC_HSE_ON;
     // oscinitstruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
@@ -156,10 +156,13 @@ void SystemClock_Config(void)
     oscinitstruct.PLL.PLLState = RCC_PLL_ON;
     oscinitstruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
     oscinitstruct.PLL.PLLMUL = RCC_PLL_MUL6;
+
+#if 0
     oscinitstruct.Prediv1Source = RCC_PREDIV1_SOURCE_PLL2;
     oscinitstruct.PLL2.PLL2State = RCC_PLL2_OFF;
     oscinitstruct.PLL2.PLL2MUL = RCC_PLL2_MUL8;
     oscinitstruct.PLL2.HSEPrediv2Value = RCC_HSE_PREDIV2_DIV5;
+#endif
 #else
     oscinitstruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
     oscinitstruct.HSEState = RCC_HSE_ON;
@@ -169,8 +172,8 @@ void SystemClock_Config(void)
     oscinitstruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
     oscinitstruct.PLL.PLLMUL = RCC_PLL_MUL9;
     oscinitstruct.PLL2.PLL2State = RCC_PLL2_ON;
-    oscinitstruct.PLL2.PLL2MUL = RCC_PLL2_MUL8;
-    oscinitstruct.PLL2.HSEPrediv2Value = RCC_HSE_PREDIV2_DIV5;
+    oscinitstruct.PLL2.PLL2MUL = RCC_PLL2_MUL10;
+    oscinitstruct.PLL2.HSEPrediv2Value = RCC_HSE_PREDIV2_DIV2;
 #endif
 
     if (HAL_RCC_OscConfig(&oscinitstruct) != HAL_OK)

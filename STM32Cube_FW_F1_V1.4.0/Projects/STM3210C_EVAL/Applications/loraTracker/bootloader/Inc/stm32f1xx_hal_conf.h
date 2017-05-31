@@ -43,8 +43,6 @@
  extern "C" {
 #endif
 
-#define BSP_HSE_EXTERNEL_12M
-
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 
@@ -92,7 +90,7 @@
   */
 
 #if !defined  (HSE_VALUE) 
-  #if defined(BSP_HSE_EXTERNEL_12M)
+  #if defined(BSP_V500_TEST)
     #define HSE_VALUE    ((uint32_t)12000000) /*!< Value of the External oscillator in Hz */
   #else
     #define HSE_VALUE    ((uint32_t)8000000) /*!< Value of the External oscillator in Hz */

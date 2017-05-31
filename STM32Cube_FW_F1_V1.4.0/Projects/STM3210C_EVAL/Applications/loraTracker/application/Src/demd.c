@@ -44,7 +44,7 @@ DEMD_StatusTypeDef DEMD_IOcontrol(DEMD_IOControlTypedef io, int *input, int insi
     {
     case DEMD_REPORT_PERIOD_CHANGE:
         // parser for input.
-        if(input != NULL && size > 0)
+        if(input != NULL && insize > 0)
         {
             TimerStop(&reportToserverTimer);
             TimerSetValue(&reportToserverTimer, 120000);

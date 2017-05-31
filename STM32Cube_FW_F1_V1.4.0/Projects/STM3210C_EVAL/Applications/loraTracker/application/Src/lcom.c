@@ -134,7 +134,7 @@ void lcom_Init(void)
 	HAL_GPIO_WritePin(LORA_RESET_EN_GPIO_PORT ,LORA_RESET_EN_PIN, GPIO_PIN_SET);
 #endif
 
-    UartHandle.Instance = USART2;
+    UartHandle.Instance = LOR_USARTx;
     UartHandle.Init.BaudRate = 115200;
     UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
     UartHandle.Init.StopBits = UART_STOPBITS_1;

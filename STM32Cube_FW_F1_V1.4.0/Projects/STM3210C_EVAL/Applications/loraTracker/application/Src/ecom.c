@@ -118,7 +118,7 @@ void ecom_Init(void)
 	// HAL_GPIO_WritePin(GPS_POWER_EN_GPIO_PORT ,GPS_POWER_EN_PIN, GPIO_PIN_SET);
 
 
-    UartHandle.Instance = UART4;
+    UartHandle.Instance = EXT_USARTx;
     UartHandle.Init.BaudRate = 9600;
     UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
     UartHandle.Init.StopBits = UART_STOPBITS_1;
