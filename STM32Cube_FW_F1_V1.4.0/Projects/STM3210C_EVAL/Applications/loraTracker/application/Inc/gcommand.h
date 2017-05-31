@@ -47,12 +47,19 @@
 #ifndef __GCOMMAND_H__
 #define __GCOMMAND_H__
 
+#include "com.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
+
+typedef enum {
+    GCOM_REPORT_REQUEST = 0,
+} GCOM_IOControlTypedef;
+
 /* Exported constants --------------------------------------------------------*/
 /* External variables --------------------------------------------------------*/
 /* Exported macros -----------------------------------------------------------*/
@@ -77,6 +84,8 @@ void GCMD_Init(void);
  * @retval None
  */
 void GCMD_Process(void);
+
+COM_StatusTypeDef GCMD_IOcontrol(GCOM_IOControlTypedef io, int *input, int insize, int *output, int *outsize); 
 
 #ifdef __cplusplus
 }

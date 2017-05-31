@@ -1,12 +1,19 @@
 #include <string.h>
 #include "rqueue.h"
+#include "debug.h"
 
+
+#if 0
+#define LOG_PRINTF(...)     DEBUG(__VA_ARGS__)
+#else
+#define LOG_PRINTF(...)
+#endif
 
 static RQueue_StatusTypeDef first(rqueue *mm, element item)
 {
 	int front = ((mm->front - 1) < 0)? mm->q_size - 1: mm->front - 1 % mm->q_size;
 	if (front == mm->rear) {
-		printf("Queue is Fulll\r\n");
+		DEBUG(ZONE_ERROR, ("%d is Fulll. front=%d, rear=%d, count=%d\r\n", mm->dbname,  mm->front, mm->rear, mm->count));
 		return RQUEUE_OUTOFMEM;
 	}
 
@@ -17,7 +24,7 @@ static RQueue_StatusTypeDef first(rqueue *mm, element item)
 	mm->front = front;
 	__RQ_UNLOCK(mm);
 
-	printf("first front=%d, rear=%d, count=%d\r\n", front, mm->rear, mm->count);
+	LOG_PRINTF(ZONE_TRACE, ("first front=%d, rear=%d, count=%d\r\n", front, mm->rear, mm->count));
 
 	return RQUEUE_OK;
 }
@@ -25,7 +32,7 @@ static RQueue_StatusTypeDef last(rqueue *mm, element item)
 {
 	int rear = (mm->rear + 1) % mm->q_size;
 	if (mm->front == rear) {
-		printf("Queue is Fulll \r\n");
+		DEBUG(ZONE_ERROR, ("%d is Fulll. front=%d, rear=%d, count=%d\r\n", mm->dbname, mm->front, mm->rear, mm->count));
 		return RQUEUE_OUTOFMEM;
 	}
 	__RQ_LOCK(mm);
@@ -35,14 +42,14 @@ static RQueue_StatusTypeDef last(rqueue *mm, element item)
 	mm->rear = rear;
 	__RQ_UNLOCK(mm);
 
-	printf("last front=%d, rear=%d, count=%d\r\n", mm->front, mm->rear, mm->count );
+	LOG_PRINTF(ZONE_TRACE, ("last front=%d, rear=%d, count=%d\r\n", mm->front, mm->rear, mm->count ));
 
 	return RQUEUE_OK;
 }
 static RQueue_StatusTypeDef removefirst(rqueue *mm, element *item)
 {
 	if (mm->front == mm->rear) {
-		printf("Queue is empty \r\n");
+		LOG_PRINTF(ZONE_TRACE, ("Queue is empty \r\n"));
 		return RQUEUE_EMPTY;
 	}
 	else {
@@ -53,7 +60,7 @@ static RQueue_StatusTypeDef removefirst(rqueue *mm, element *item)
 		mm->front = (mm->front + 1) % mm->q_size;
 		__RQ_UNLOCK(mm);
 
-		printf("removefirst front=%d, rear=%d, count=%d \r\n", mm->front, mm->rear, mm->count);
+		LOG_PRINTF(ZONE_TRACE, ("removefirst front=%d, rear=%d, count=%d \r\n", mm->front, mm->rear, mm->count));
 	}
 
 	return RQUEUE_OK;
@@ -63,12 +70,12 @@ static RQueue_StatusTypeDef get(rqueue *mm, element *item)
 {
 	int pos = mm->front;
 	if (mm->front == mm->rear) {
-		printf("Queue is empty \r\n");
+		LOG_PRINTF(ZONE_TRACE, ("Queue is empty \r\n"));
 		return RQUEUE_EMPTY;
 	}
 	else {
 		memcpy(item , &mm->elements[pos], sizeof(element));
-		printf("get front=%d, rear=%d, count=%d \r\n", pos, mm->rear, mm->count);
+		LOG_PRINTF(ZONE_TRACE, ("get front=%d, rear=%d, count=%d \r\n", pos, mm->rear, mm->count));
 	}
 
 	return RQUEUE_OK;
@@ -79,7 +86,7 @@ static void tostring(rqueue *mm)
 
 	if (mm->count == 0)
 	{
-		printf("empty\r\n");
+		LOG_PRINTF(ZONE_TRACE, ("empty\r\n"));
 		return;
 	}
 
@@ -88,15 +95,17 @@ static void tostring(rqueue *mm)
 	while (front != mm->rear)
 	{
 		d = mm->elements[front];
-		printf("%d = [%d %d %s] \r\n", front, d.retcount, d.size, d.edata);
+		LOG_PRINTF(ZONE_TRACE, ("%d = [%d %d %s] \r\n", front, d.retcount, d.size, d.edata));
 		front = (front + 1) % mm->q_size;
 	}
 }
 
-rqueue *createRqueue(rqueue* m, element *arrayElement, int size)
+rqueue *createRqueue(rqueue* m, int dbname, element *arrayElement, int size)
 {
 	//rqueue* m;
 	//m = (rqueue*)malloc(sizeof(rqueue));
+	m->dbname = dbname;
+
 	m->front = 0;
 	m->rear = 0;
 	m->count = 0;

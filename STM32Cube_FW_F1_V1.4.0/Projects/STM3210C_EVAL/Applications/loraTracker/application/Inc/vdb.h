@@ -13,6 +13,7 @@ typedef enum
   LOR = 0,
   GPS,
   EXT,
+  DEM,
   DB_MAX_SIZE
 } DB_TypeDef;
 

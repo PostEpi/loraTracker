@@ -57,9 +57,7 @@
 #endif 
 
 
-#undef RCC_CR_PLL2ON  
-#define BSP_V500_TEST
-#define BSP_HSE_EXTERNEL_12M
+
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
@@ -212,12 +210,12 @@ typedef enum
 
 #define LEDn                             2
 
-#define LED1_PIN                         GPIO_PIN_9             /* green*/
+#define LED1_PIN                         GPIO_PIN_8             /* green*/
 #define LED1_GPIO_PORT                   GPIOC
 #define LED1_GPIO_CLK_ENABLE()           __HAL_RCC_GPIOD_CLK_ENABLE()
 #define LED1_GPIO_CLK_DISABLE()          __HAL_RCC_GPIOD_CLK_DISABLE()
   
-#define LED2_PIN                         GPIO_PIN_8             /* red*/
+#define LED2_PIN                         GPIO_PIN_9             /* red*/
 #define LED2_GPIO_PORT                   GPIOC
 #define LED2_GPIO_CLK_ENABLE()           __HAL_RCC_GPIOC_CLK_ENABLE()
 #define LED2_GPIO_CLK_DISABLE()          __HAL_RCC_GPIOC_CLK_DISABLE()
@@ -225,7 +223,7 @@ typedef enum
 
 
 #define LEDx_GPIO_CLK_ENABLE(__LED__)    do { if ((__LED__) == LED1) LED1_GPIO_CLK_ENABLE(); else \
-                                              if ((__LED__) == LED2) LEDr2_GPIO_CLK_ENABLE(); } while(0)
+                                              if ((__LED__) == LED2) LED2_GPIO_CLK_ENABLE(); } while(0)
 
 #define LEDx_GPIO_CLK_DISABLE(__LED__)   (((__LED__) == LED1) ? LED1_GPIO_CLK_DISABLE() :\
                                           ((__LED__) == LED2) ? LED2_GPIO_CLK_DISABLE() : 0 )
@@ -314,13 +312,13 @@ typedef enum
 #define PRST_GPIO_CLK_ENABLE()    			  __HAL_RCC_GPIOB_CLK_ENABLE()
 #define PRST_GPIO_CLK_DISABLE()    		    __HAL_RCC_GPIOB_CLK_DISABLE()
 
-#define OUTPUTx_GPIO_CLK_ENABLE(__OUTPUTGPIO__) do { if ((__OUTPUTGPIO__) == OUTPUT_) WKUP_GPIO_CLK_ENABLE()  ; else \
-                                                 if ((__OUTPUTGPIO__) == OUTPUT_) NRST_GPIO_CLK_ENABLE()  ; else \
-                                                 if ((__OUTPUTGPIO__) == OUTPUT_) PRST_GPIO_CLK_ENABLE();} while(0)
+#define OUTPUTx_GPIO_CLK_ENABLE(__OUTPUTGPIO__) do { if ((__OUTPUTGPIO__) == OUTPUT_WKUP) WKUP_GPIO_CLK_ENABLE()  ; else \
+                                                 if ((__OUTPUTGPIO__) == OUTPUT_NRST) NRST_GPIO_CLK_ENABLE()  ; else \
+                                                 if ((__OUTPUTGPIO__) == OUTPUT_PRST) PRST_GPIO_CLK_ENABLE();} while(0)
 
-#define OUTPUTx_GPIO_CLK_DISABLE(__OUTPUTGPIO__)    (((__OUTPUTGPIO__) == OUTPUT_) WKUP_GPIO_CLK_DISBLE()  :\
-                                                 ((__OUTPUTGPIO__) == OUTPUT_) NRST_GPIO_CLK_DISABLE()  :\
-                                                 ((__OUTPUTGPIO__) == OUTPUT_) PRST_GPIO_CLK_DISABLE()  : 0 )
+#define OUTPUTx_GPIO_CLK_DISABLE(__OUTPUTGPIO__)    (((__OUTPUTGPIO__) == OUTPUT_WKUP) WKUP_GPIO_CLK_DISBLE()  :\
+                                                 ((__OUTPUTGPIO__) == OUTPUT_NRST) NRST_GPIO_CLK_DISABLE()  :\
+                                                 ((__OUTPUTGPIO__) == OUTPUT_PRST) PRST_GPIO_CLK_DISABLE()  : 0 )
 
 #endif
 

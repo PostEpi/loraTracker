@@ -107,12 +107,12 @@ void gcom_Init(void)
 
   	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-
+#if defined(BSP_V500_TEST)
   	GPS_POWER_EN_CLK_ENABLE();
 
   	GPIO_InitStruct.Pin 	  = GPS_POWER_EN_PIN;
   	GPIO_InitStruct.Mode	  = GPIO_MODE_OUTPUT_PP;
-  	GPIO_InitStruct.Pull	  = GPIO_PULLUP;
+  	GPIO_InitStruct.Pull	  = GPIO_NOPULL;
   	GPIO_InitStruct.Speed	  = GPIO_SPEED_FREQ_HIGH;
   	HAL_GPIO_Init(GPS_POWER_EN_GPIO_PORT, &GPIO_InitStruct);
       // set High
@@ -120,6 +120,10 @@ void gcom_Init(void)
 
 
     UartHandle.Instance = USART3;
+#else 
+    BSP_OUTGPIO_High(PRST_PIN);
+    UartHandle.Instance = GPS_USARTx;
+#endif
     UartHandle.Init.BaudRate = 9600;
     UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
     UartHandle.Init.StopBits = UART_STOPBITS_1;

@@ -111,8 +111,8 @@ int main(void)
     BSP_OUTGPIO_init(OUTPUT_LORA_POWER, GPIO_PIN_RESET);
     BSP_OUTGPIO_init(OUTPUT_LORA_RESET, GPIO_PIN_SET);
 #else
-    BSP_OUTGPIO_init(OUTPUT_WKUP, GPIO_PIN_RESET);
-    BSP_OUTGPIO_init(OUTPUT_NRST, GPIO_PIN_RESET);
+    BSP_OUTGPIO_init(OUTPUT_WKUP, GPIO_PIN_SET);
+    BSP_OUTGPIO_init(OUTPUT_NRST, GPIO_PIN_SET);
     BSP_OUTGPIO_init(OUTPUT_PRST, GPIO_PIN_RESET);
 #endif
 
@@ -140,21 +140,24 @@ int main(void)
     }
 
     /* Output a message on Hyperterminal using printf function */
-    printf("\n\r DEBUG : Retarget the debug function to the UART1\n\r");
+    printf("\n\r *** Lora Board Start ***\n\r\n\r");
 
     RTC_init();
     TIM_Init();
 
 	ECMD_Init();
-	//LCMD_Init();
+	LCMD_Init();
 	GCMD_Init();
+
+    BSP_LED_Off(LED_RED);
+    BSP_LED_Off(LED_GREEN);
 
     /* Infinite loop */
     while (1)
     {
         //USER_Process();
 		ECMD_Process();
-		//LCMD_Process();
+		LCMD_Process();
 		GCMD_Process();
     }
 }
@@ -202,7 +205,7 @@ void SystemClock_Config(void)
 
 /* Enable HSE Oscillator and activate PLL with HSE as source */
 
-#if defined(BSP_HSE_EXTERNEL_12M)
+#if defined(BSP_V500_TEST)
     oscinitstruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
     oscinitstruct.HSEState = RCC_HSE_ON;
     oscinitstruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
@@ -210,13 +213,13 @@ void SystemClock_Config(void)
     oscinitstruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
     oscinitstruct.PLL.PLLMUL = RCC_PLL_MUL6;
 
-#if defined(STM32F105xC)
+#if 0
     oscinitstruct.Prediv1Source = RCC_PREDIV1_SOURCE_PLL2;
     oscinitstruct.PLL2.PLL2State = RCC_PLL2_OFF;
     oscinitstruct.PLL2.PLL2MUL = RCC_PLL2_MUL8;
     oscinitstruct.PLL2.HSEPrediv2Value = RCC_HSE_PREDIV2_DIV5;
 #endif
-    
+
 #else
     oscinitstruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
     oscinitstruct.HSEState = RCC_HSE_ON;
@@ -226,8 +229,8 @@ void SystemClock_Config(void)
     oscinitstruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
     oscinitstruct.PLL.PLLMUL = RCC_PLL_MUL9;
     oscinitstruct.PLL2.PLL2State = RCC_PLL2_ON;
-    oscinitstruct.PLL2.PLL2MUL = RCC_PLL2_MUL8;
-    oscinitstruct.PLL2.HSEPrediv2Value = RCC_HSE_PREDIV2_DIV5;
+    oscinitstruct.PLL2.PLL2MUL = RCC_PLL2_MUL10;
+    oscinitstruct.PLL2.HSEPrediv2Value = RCC_HSE_PREDIV2_DIV2;
 #endif
 
     if (HAL_RCC_OscConfig(&oscinitstruct) != HAL_OK)

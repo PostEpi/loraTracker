@@ -15,7 +15,7 @@ static void init()
     DEBUG(ZONE_FUNCTION, ("init\r\n"));
     for(i = 0; i < DB_MAX_SIZE; i++)
     {
-        createRqueue(&g_db[i], &arrayElements[i][0], NODE_GPS_BUFFER);
+        createRqueue(&g_db[i], i, &arrayElements[i][0], NODE_GPS_BUFFER);
     }
     initialDB = true;
 }

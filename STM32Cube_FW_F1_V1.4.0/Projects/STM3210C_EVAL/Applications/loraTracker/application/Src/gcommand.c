@@ -52,6 +52,7 @@
 //#include "at.h"
 #include "gcommand.h"
 #include "vdb.h"
+#include "com.h"
 #include "debug.h"
 
 /* comment the following to have help message */
@@ -592,7 +593,7 @@ static const struct ATCommand_s ATCommand[] =
 static void parse_cmd(const char *cmd);
 
 
-static bool cmd_gps_on = false;
+static bool gcom_report_request = false;
 
 /* Exported functions ---------------------------------------------------------*/
 
@@ -617,7 +618,7 @@ void GCMD_Process(void)
         ch = gGetNewChar();
 
 #if 0 /* echo On    */
-    DEBUG(ZONE_TRACE, ("%c", command[i]));
+    DEBUG(ZONE_TRACE, ("%c", ch));
 #endif
 #if 1
         fusedata(ch);
@@ -643,12 +644,15 @@ void GCMD_Process(void)
                         //parse_cmd(command);
                         if(updateDB(GPS, command, i, false) != RQUEUE_OK)
                         {
-                            DEBUG(ZONE_ERROR, ("Error : Update is failed\r\n"));
+                            DEBUG(ZONE_ERROR, ("Error : Update is failed to GPS\r\n"));
                         }
-                        if(cmd_gps_on) 
+                        if(gcom_report_request) 
                         {
-                          // call
-
+                            gcom_report_request = false;
+                            if(updateDB(DEM, command, i, false) != RQUEUE_OK)
+                            {
+                                DEBUG(ZONE_ERROR, ("Error : Update is failed to DEM\r\n"));
+                            }
                         }
 
                         DEBUG(ZONE_TRACE, ("push %s\n", command));
@@ -679,6 +683,22 @@ void GCMD_Process(void)
     }
 }
 
+
+COM_StatusTypeDef GCMD_IOcontrol(GCOM_IOControlTypedef io, int *input, int insize, int *output, int *outsize) 
+{
+    COM_StatusTypeDef ret = COM_OK;
+    switch(io)
+    {
+        case GCOM_REPORT_REQUEST:
+            gcom_report_request = true;
+            break;
+        default:
+            ret = COM_PARAM_ERROR;
+    }
+
+    return ret;
+
+}
 
 /* Private functions ---------------------------------------------------------*/
 

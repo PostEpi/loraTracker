@@ -94,8 +94,10 @@ static void receive(char rx);
 static TimerEvent_t LoraPowerTimer;
 static void OnLoraPowerTimer(void)
 {
+#if defined(BSP_V500_TEST)  
     HAL_GPIO_WritePin(LORA_POWER_EN_GPIO_PORT ,LORA_POWER_EN_PIN, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(LORA_RESET_EN_GPIO_PORT ,LORA_RESET_EN_PIN, GPIO_PIN_RESET);
+#endif    
 }
 
 /* Functions Definition ------------------------------------------------------*/
@@ -112,25 +114,25 @@ void lcom_Init(void)
 	   - BaudRate = 921600 baud
 	   - Hardware flow control disabled (RTS and CTS signals) */
 
-
+#if defined(BSP_V500_TEST)
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-	__LORA_POWER_EN_CLK_ENABLE();
+	LORA_POWER_EN_CLK_ENABLE();
 
 	GPIO_InitStruct.Pin 	  = LORA_POWER_EN_PIN;
 	GPIO_InitStruct.Mode	  = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull	  = GPIO_PULLUP;
+	GPIO_InitStruct.Pull	  = GPIO_NOPULL;
 	GPIO_InitStruct.Speed	  = GPIO_SPEED_FREQ_HIGH;
 	HAL_GPIO_Init(LORA_POWER_EN_GPIO_PORT, &GPIO_InitStruct);
 	HAL_GPIO_WritePin(LORA_POWER_EN_GPIO_PORT ,LORA_POWER_EN_PIN, GPIO_PIN_RESET);
 
 	GPIO_InitStruct.Pin 	  = LORA_RESET_EN_PIN;
 	GPIO_InitStruct.Mode	  = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull	  = GPIO_PULLUP;
+	GPIO_InitStruct.Pull	  = GPIO_NOPULL;
 	GPIO_InitStruct.Speed	  = GPIO_SPEED_FREQ_HIGH;
 	HAL_GPIO_Init(LORA_RESET_EN_GPIO_PORT, &GPIO_InitStruct);
 	HAL_GPIO_WritePin(LORA_RESET_EN_GPIO_PORT ,LORA_RESET_EN_PIN, GPIO_PIN_SET);
-
+#endif
 
     UartHandle.Instance = USART2;
     UartHandle.Init.BaudRate = 115200;

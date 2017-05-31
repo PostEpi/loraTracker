@@ -49,6 +49,7 @@
   * @{
   */
 extern TIM_HandleTypeDef    TimHandle;
+extern RTC_HandleTypeDef    RtcHandle;
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -159,6 +160,18 @@ void SysTick_Handler(void)
     HAL_IncTick();
 }
 
+
+/**
+  * @brief  This function handles RTC wakeup interrupt request.
+  * @param  None
+  * @retval None
+  */
+void RTC_IRQHandler(void)
+{
+  HAL_RTCEx_RTCIRQHandler(&RtcHandle);
+}
+
+
 /**
  * @brief  This function handles TIM interrupt request.
  * @param  None
@@ -169,6 +182,7 @@ void TIMx_IRQHandler(void)
 	  HAL_TIM_IRQHandler(&TimHandle);
 }
 
+#if defined(BSP_V500_TEST)
 void USART1_IRQHandler(void)
 {
     //HAL_UART_IRQHandler(&UartHandle);
@@ -188,7 +202,27 @@ void UART4_IRQHandler(void)
 {
     ecom_IRQHandler();
 }
+#else 
+void USART1_IRQHandler(void)
+{
+    //HAL_UART_IRQHandler(&UartHandle);
+}
 
+void USART2_IRQHandler(void)
+{
+    lcom_IRQHandler();
+}
+
+void USART3_IRQHandler(void)
+{
+    ecom_IRQHandler();
+}
+
+void UART4_IRQHandler(void)
+{
+    gcom_IRQHandler();
+}
+#endif
 /******************************************************************************/
 /*                 STM32F1xx Peripherals Interrupt Handlers                   */
 /*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */

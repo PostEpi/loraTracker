@@ -525,6 +525,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
  */
 void HAL_RTC_MspInit(RTC_HandleTypeDef *hrtc)
 {
+#if defined(BSP_V500_TEST) 
 	RCC_OscInitTypeDef        RCC_OscInitStruct;
 	RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct;
 
@@ -561,6 +562,42 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef *hrtc)
 	/*##-3- Enable RTC peripheral Clocks #######################################*/
 	/* Enable RTC Clock */
 	__HAL_RCC_RTC_ENABLE();
+#else
+  RCC_OscInitTypeDef RCC_OscInitStruct;
+  RCC_PeriphCLKInitTypeDef  PeriphClkInitStruct;
+  
+  /*##-1- Configue LSI as RTC clock soucre ###################################*/ 
+  HAL_RCC_GetOscConfig(&RCC_OscInitStruct);
+  
+  RCC_OscInitStruct.OscillatorType =  RCC_OSCILLATORTYPE_LSI | RCC_OSCILLATORTYPE_LSE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL2.PLL2State = RCC_PLL2_NONE;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
+  RCC_OscInitStruct.LSEState = RCC_LSE_OFF;
+  if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
+  PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
+  if(HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+  { 
+    Error_Handler();
+  }
+  
+  /*##-2- Enable RTC peripheral Clocks #######################################*/ 
+  /* Enable RTC Clock */ 
+  __HAL_RCC_RTC_ENABLE(); 
+  
+  /*##-3- Configure the NVIC for RTC Alarm ###################################*/
+  HAL_NVIC_SetPriority(RTC_IRQn, 0x0, 0);
+  
+  /* Enable the RTC global Interrupt */
+  HAL_NVIC_EnableIRQ(RTC_IRQn);
+#endif
+    
+    
 }
 
 /**

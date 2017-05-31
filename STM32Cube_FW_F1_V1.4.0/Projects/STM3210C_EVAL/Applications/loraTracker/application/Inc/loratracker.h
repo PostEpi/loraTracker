@@ -14,8 +14,8 @@
 /* ########################## bsp Selection ############################## */
 #define BSP_DEBUG_ON
 
-#define BSP_V500_TEST
-#define BSP_HSE_EXTERNEL_12M
+//#define BSP_V500_TEST
+//#define BSP_HSE_EXTERNEL_12M
 
 extern void Error_Handler(void);
 #endif /* LORATRACKER */

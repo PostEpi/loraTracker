@@ -601,9 +601,9 @@ void LCMD_Process(void)
   static unsigned i = 0;
 
   /* Process all commands */
-  while (gIsNewCharReceived() == SET)
+  while (lIsNewCharReceived() == SET)
   {
-    command[i] = gGetNewChar();
+    command[i] = lGetNewChar();
 
 #if 0 /* echo On    */
     DEBUG(ZONE_TRACE, ("%c", command[i]));

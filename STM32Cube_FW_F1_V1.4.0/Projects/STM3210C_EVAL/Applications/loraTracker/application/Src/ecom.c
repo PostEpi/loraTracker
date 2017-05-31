@@ -111,7 +111,7 @@ void ecom_Init(void)
 
 	// GPIO_InitStruct.Pin 	  = GPS_POWER_EN_PIN;
 	// GPIO_InitStruct.Mode	  = GPIO_MODE_OUTPUT_PP;
-	// GPIO_InitStruct.Pull	  = GPIO_PULLUP;
+	// GPIO_InitStruct.Pull	  = GPIO_NOPULL;
 	// GPIO_InitStruct.Speed	  = GPIO_SPEED_FREQ_HIGH;
 	// HAL_GPIO_Init(GPS_POWER_EN_GPIO_PORT, &GPIO_InitStruct);
     // // set High

@@ -50,6 +50,8 @@ typedef struct
 
 typedef struct rqueue
 {
+	int dbname;
+
 	int front;
 	int rear;
 	int count;
@@ -64,7 +66,7 @@ typedef struct rqueue
 	void (*display)(struct rqueue *mm);
 } rqueue;
 
-rqueue *createRqueue(rqueue* m, element *arrayElement, int size);
+rqueue *createRqueue(rqueue* m, int dbname, element *arrayElement, int size);
 // RQueue_StatusTypeDef first(rqueue *mm, element item);
 // RQueue_StatusTypeDef last(rqueue *mm, element item);
 // RQueue_StatusTypeDef removefirst(rqueue *mm, element *item);
