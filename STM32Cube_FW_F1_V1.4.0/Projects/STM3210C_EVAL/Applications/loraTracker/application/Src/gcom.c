@@ -118,7 +118,6 @@ void gcom_Init(void)
       // set High
   	HAL_GPIO_WritePin(GPS_POWER_EN_GPIO_PORT ,GPS_POWER_EN_PIN, GPIO_PIN_SET);
 
-
     UartHandle.Instance = USART3;
 #else 
     BSP_OUTGPIO_High(PRST_PIN);
@@ -306,6 +305,13 @@ void gcom_IRQHandler(void)
 static int buffer_transmit(int start, int len)
 {
     int i;
+
+    if (UartHandle.State == HAL_UART_STATE_TIMEOUT)
+    {
+        UartHandle.State = HAL_UART_STATE_READY;
+    }
+
+    DEBUG(ZONE_TRACE, ("GCOM: buffer_transmit : %s\r\n", &uart_context.buffTx[start]));
 
     for (i = start; i < len; i++)
     {

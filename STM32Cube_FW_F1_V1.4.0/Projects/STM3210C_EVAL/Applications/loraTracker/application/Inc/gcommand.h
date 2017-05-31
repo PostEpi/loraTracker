@@ -48,6 +48,7 @@
 #define __GCOMMAND_H__
 
 #include "com.h"
+#include "gcom.h"
 
 #ifdef __cplusplus
 extern "C" {

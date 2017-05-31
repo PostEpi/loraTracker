@@ -203,7 +203,6 @@ void lcom_Send(const char *format, ...)
     do
     {
         stop = buffer_transmit(start, current_len);
-
         {
             BACKUP_PRIMASK();
             DISABLE_IRQ();
@@ -322,6 +321,13 @@ void lcom_IRQHandler(void)
 static int buffer_transmit(int start, int len)
 {
     int i;
+
+    if (UartHandle.State == HAL_UART_STATE_TIMEOUT)
+    {
+        UartHandle.State = HAL_UART_STATE_READY;
+    }
+
+    DEBUG(ZONE_TRACE, ("LCOM: buffer_transmit : %s\r\n", &uart_context.buffTx[start]));
 
     for (i = start; i < len; i++)
     {

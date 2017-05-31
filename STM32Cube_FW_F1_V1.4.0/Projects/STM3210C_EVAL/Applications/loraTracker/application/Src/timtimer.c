@@ -94,7 +94,7 @@ static void initTimer()
 static void OnLEDRedTimer(void)
 {
 
-	led_red ? BSP_LED_On(LED_RED) : BSP_LED_Off(LED_RED);
+	//led_red ? BSP_LED_On(LED_RED) : BSP_LED_Off(LED_RED);
 	led_red = 1 - led_red;
 	TimerStart(&RedTimer);
 }

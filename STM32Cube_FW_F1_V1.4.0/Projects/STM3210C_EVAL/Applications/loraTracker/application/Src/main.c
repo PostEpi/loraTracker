@@ -148,6 +148,7 @@ int main(void)
 	ECMD_Init();
 	LCMD_Init();
 	GCMD_Init();
+    DEMD_Init();
 
     BSP_LED_Off(LED_RED);
     BSP_LED_Off(LED_GREEN);
@@ -159,6 +160,7 @@ int main(void)
 		ECMD_Process();
 		LCMD_Process();
 		GCMD_Process();
+        DEMD_Process();
     }
 }
 

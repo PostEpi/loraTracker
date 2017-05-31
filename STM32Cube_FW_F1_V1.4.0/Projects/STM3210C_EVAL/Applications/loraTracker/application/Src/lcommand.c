@@ -48,7 +48,8 @@
 #include <stdlib.h>
 #include "stm32f1xx.h"
 //#include "at.h"
-#include "gcommand.h"
+#include "lcommand.h"
+#include "vdb.h"
 #include "debug.h"
 
 /* comment the following to have help message */
@@ -82,15 +83,15 @@ struct ATCommand_s {
  * @brief  Array corresponding to the description of each possible AT Error
  */
 static const char *const ATError_description[] =
-{
-  "\r\nOK\r\n",                     /* AT_OK */
-  "\r\nAT_ERROR\r\n",               /* AT_ERROR */
-  "\r\nAT_PARAM_ERROR\r\n",         /* AT_PARAM_ERROR */
-  "\r\nAT_BUSY_ERROR\r\n",          /* AT_BUSY_ERROR */
-  "\r\nAT_TEST_PARAM_OVERFLOW\r\n", /* AT_TEST_PARAM_OVERFLOW */
-  "\r\nAT_NO_NETWORK_JOINED\r\n",   /* AT_NO_NET_JOINED */
-  "\r\nAT_RX_ERROR\r\n",            /* AT_RX_ERROR */
-  "\r\nerror unknown\r\n",          /* AT_MAX */
+    {
+        "\r\nOK\r\n",                     /* AT_OK */
+        "\r\nAT_ERROR\r\n",               /* AT_ERROR */
+        "\r\nAT_PARAM_ERROR\r\n",         /* AT_PARAM_ERROR */
+        "\r\nAT_BUSY_ERROR\r\n",          /* AT_BUSY_ERROR */
+        "\r\nAT_TEST_PARAM_OVERFLOW\r\n", /* AT_TEST_PARAM_OVERFLOW */
+        "\r\nAT_NO_NETWORK_JOINED\r\n",   /* AT_NO_NET_JOINED */
+        "\r\nAT_RX_ERROR\r\n",            /* AT_RX_ERROR */
+        "\r\nerror unknown\r\n",          /* AT_MAX */
 };
 
 #if 0 
@@ -122,7 +123,7 @@ static const struct ATCommand_s ATCommand[] =
     .run = at_return_error,
   },
 #endif
-  
+
 #ifndef NO_KEY_ADDR_EUI
   {
     .string = AT_DADDR,
@@ -135,7 +136,7 @@ static const struct ATCommand_s ATCommand[] =
     .run = at_return_error,
   },
 #endif
-  
+
 #ifndef NO_KEY_ADDR_EUI
   {
     .string = AT_APPKEY,
@@ -148,7 +149,7 @@ static const struct ATCommand_s ATCommand[] =
     .run = at_return_error,
   },
 #endif
-  
+
 #ifndef NO_KEY_ADDR_EUI
   {
     .string = AT_NWKSKEY,
@@ -161,7 +162,7 @@ static const struct ATCommand_s ATCommand[] =
     .run = at_return_error,
   },
 #endif
-  
+
 #ifndef NO_KEY_ADDR_EUI
   {
     .string = AT_APPSKEY,
@@ -174,7 +175,7 @@ static const struct ATCommand_s ATCommand[] =
     .run = at_return_error,
   },
 #endif
-  
+
 #ifndef NO_KEY_ADDR_EUI
   {
     .string = AT_APPEUI,
@@ -591,72 +592,82 @@ static void parse_cmd(const char *cmd);
 
 void LCMD_Init(void)
 {
-  lcom_Init();
-  lcom_ReceiveInit();
+    lcom_Init();
+    lcom_ReceiveInit();
 }
 
 void LCMD_Process(void)
 {
-  static char command[CMD_SIZE];
-  static unsigned i = 0;
+    static char command[CMD_SIZE];
+    static unsigned i = 0;
 
-  /* Process all commands */
-  while (lIsNewCharReceived() == SET)
-  {
-    command[i] = lGetNewChar();
+    element item;
+    DB_TypeDef db = LOR;
+
+    /* Process all commands */
+    while (lIsNewCharReceived() == SET)
+    {
+        command[i] = lGetNewChar();
 
 #if 0 /* echo On    */
-    DEBUG(ZONE_TRACE, ("%c", command[i]));
+        DEBUG(ZONE_TRACE, ("%c", command[i]));
 #endif
 
 #if 0
-    if (command[i] == AT_ERROR_RX_CHAR)
-    {
-      i = 0;
-      com_error(AT_RX_ERROR);
-      break;
-    }
-    else
-    if ((command[i] == '\r') || (command[i] == '\n'))
-    {
-      if (i != 0)
-      {
-        command[i] = '\0';
-        parse_cmd(command);
+        if (command[i] == AT_ERROR_RX_CHAR)
+        {
         i = 0;
-      }
-    }
-    else
-    if (i == (CMD_SIZE - 1))
-    {
-      i = 0;
-      com_error(AT_TEST_PARAM_OVERFLOW);
-    }
-    else
-    {
-      i++;
-    }
+        com_error(AT_RX_ERROR);
+        break;
+        }
+        else
+        if ((command[i] == '\r') || (command[i] == '\n'))
+        {
+        if (i != 0)
+        {
+            command[i] = '\0';
+            parse_cmd(command);
+            i = 0;
+        }
+        }
+        else
+        if (i == (CMD_SIZE - 1))
+        {
+        i = 0;
+        com_error(AT_TEST_PARAM_OVERFLOW);
+        }
+        else
+        {
+        i++;
+        }
 #endif
-			if ((command[i] == '\r') || (command[i] == '\n'))
-			{
-				if (i != 0)
-				{
-					command[i] = '\0';
-					DEBUG(ZONE_TRACE, ("lbuffer = %s", command));
-					i = 0;
-				}
-			}
-            else if (i == (CMD_SIZE - 1))
+        if ((command[i] == '\r') || (command[i] == '\n'))
+        {
+            if (i != 0)
             {
+                command[i] = '\0';
+                DEBUG(ZONE_TRACE, ("lbuffer = %s", command));
                 i = 0;
-                DEBUG(ZONE_TRACE, ("ebffer = %s\r\n", command));
             }
-            else 
-            {
-                i++;
-            }
+        }
+        else if (i == (CMD_SIZE - 1))
+        {
+            i = 0;
+            DEBUG(ZONE_TRACE, ("ebffer = %s\r\n", command));
+        }
+        else
+        {
+            i++;
+        }
+    }
+    
+    if (!isEmptydDB(db) && selectDB(db, &item) == RQUEUE_OK)
+    {
+        DEBUG(ZONE_TRACE, ("LCMD_Process : %d, %d, %s\r\n", item.size, item.retcount, item.edata ))
+        LPRINTF(item.edata);
+        deleteDB(db, &item);
+    }
 
-  }
 }
 
 /* Private functions ---------------------------------------------------------*/

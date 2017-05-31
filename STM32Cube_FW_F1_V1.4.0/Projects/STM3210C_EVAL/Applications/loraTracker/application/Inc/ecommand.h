@@ -47,6 +47,9 @@
 #ifndef __ECOMMAND_H__
 #define __ECOMMAND_H__
 
+#include "com.h"
+#include "ecom.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -82,6 +85,9 @@ void ECMD_Init(void);
  * @retval None
  */
 void ECMD_Process(void);
+
+
+COM_StatusTypeDef ECMD_IOcontrol(ECOM_IOControlTypedef io, int *input, int insize, int *output, int *outsize); 
 
 #ifdef __cplusplus
 }

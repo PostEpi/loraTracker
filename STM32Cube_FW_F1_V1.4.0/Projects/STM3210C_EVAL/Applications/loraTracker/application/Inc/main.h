@@ -45,6 +45,10 @@
 #include "stdio.h"
 #include "timtimer.h"
 #include "rtc.h"
+#include "ecommand.h"
+#include "lcommand.h"
+#include "gcommand.h"
+#include "demd.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/

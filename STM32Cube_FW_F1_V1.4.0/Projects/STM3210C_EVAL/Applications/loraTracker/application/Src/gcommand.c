@@ -52,7 +52,6 @@
 //#include "at.h"
 #include "gcommand.h"
 #include "vdb.h"
-#include "com.h"
 #include "debug.h"
 
 /* comment the following to have help message */
@@ -655,7 +654,7 @@ void GCMD_Process(void)
                             }
                         }
 
-                        DEBUG(ZONE_TRACE, ("push %s\n", command));
+                        DEBUG(ZONE_TRACE, ("GCMD_Process %s", command));
 
                         i = 0;
                         memset((void*)command, 0, GPS_CMD_SIZE);
@@ -687,6 +686,8 @@ void GCMD_Process(void)
 COM_StatusTypeDef GCMD_IOcontrol(GCOM_IOControlTypedef io, int *input, int insize, int *output, int *outsize) 
 {
     COM_StatusTypeDef ret = COM_OK;
+    DEBUG(ZONE_FUNCTION, ("+GCMD_IOcontrol %d, 0x%x, %d, 0x%x, %d\r\n", io, input, insize, output, outsize));
+
     switch(io)
     {
         case GCOM_REPORT_REQUEST:
@@ -696,6 +697,7 @@ COM_StatusTypeDef GCMD_IOcontrol(GCOM_IOControlTypedef io, int *input, int insiz
             ret = COM_PARAM_ERROR;
     }
 
+    DEBUG(ZONE_FUNCTION, ("-GCMD_IOcontrol %d\r\n", ret));
     return ret;
 
 }

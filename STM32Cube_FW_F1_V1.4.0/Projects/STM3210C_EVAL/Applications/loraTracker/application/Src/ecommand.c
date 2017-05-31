@@ -48,7 +48,6 @@
 #include <stdlib.h>
 #include "stm32f1xx.h"
 //#include "at.h"
-#include "ecom.h"
 #include "ecommand.h"
 #include "vdb.h"
 #include "debug.h"
@@ -604,7 +603,9 @@ void ECMD_Process(void)
 {
     static char command[CMD_SIZE];
     static unsigned i = 0;
-
+    
+    element item;
+    DB_TypeDef db = GPS;
 
     /* Process all commands */
     while (eIsNewCharReceived() == SET)
@@ -663,12 +664,11 @@ void ECMD_Process(void)
         }
     }
     
-    element item;
-    if (!isEmptydDB(GPS) && selectDB(GPS, &item) == RQUEUE_OK)
+    if (!isEmptydDB(db) && selectDB(db, &item) == RQUEUE_OK)
     {
         DEBUG(ZONE_TRACE, ("ECMD_Process : %d, %d, %s\r\n", item.size, item.retcount, item.edata ))
         EPRINTF(item.edata);
-        deleteDB(GPS, &item);
+        deleteDB(db, &item);
     }
 }
 

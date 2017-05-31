@@ -47,6 +47,9 @@
 #ifndef __LCOMMAND_H__
 #define __LCOMMAND_H__
 
+#include "com.h"
+#include "lcom.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -82,6 +85,9 @@ void LCMD_Init(void);
  * @retval None
  */
 void LCMD_Process(void);
+
+
+COM_StatusTypeDef LCMD_IOcontrol(LCOM_IOControlTypedef io, int *input, int insize, int *output, int *outsize); 
 
 #ifdef __cplusplus
 }

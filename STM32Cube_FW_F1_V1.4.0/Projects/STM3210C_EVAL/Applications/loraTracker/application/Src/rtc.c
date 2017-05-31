@@ -1,6 +1,5 @@
 #include "rtc.h"
 
-
 /* RTC handler declaration */
 RTC_HandleTypeDef RtcHandle;
 /* Buffer used for displaying Time */
@@ -25,13 +24,13 @@ static uint32_t GetLSIFrequency(void);
 static void RTC_AlarmConfig(void);
 
 
-void RTC_init() 
+void RTC_init()
 {
-    /*##-1- Configure the RTC peripheral #######################################*/
+	/*##-1- Configure the RTC peripheral #######################################*/
 	RtcHandle.Instance = RTC;
 
-	/* Configure RTC prescaler and RTC data registers */
-	/* RTC configured as follows:
+/* Configure RTC prescaler and RTC data registers */
+/* RTC configured as follows:
 	   - Asynch Prediv  = Automatic calculation of prediv for 1 sec timebase
 	   */
 #if defined(BSP_V500_TEST)
@@ -41,8 +40,8 @@ void RTC_init()
 		/* Initialization Error */
 		Error_Handler();
 	}
-	
-    /*##-2- Configure Alarm ####################################################*/
+
+	/*##-2- Configure Alarm ####################################################*/
 	/* Configure RTC Alarm */
 	RTC_AlarmConfig();
 #else
@@ -80,7 +79,7 @@ uint32_t RTC_GetDateTime(uint8_t *showtime, uint8_t *showdate)
 	/* Display date Format : mm-dd-yy */
 	sprintf((char *)showdate, "%2d-%2d-%2d", sdatestructureget.Month, sdatestructureget.Date, 2000 + sdatestructureget.Year);
 
-	DEBUG(ZONE_TRACE, ("%s %s\r\n", showdate, showtime));
+	//DEBUG(ZONE_TRACE, ("%s %s\r\n", showdate, showtime));
 	//DEBUG(ZONE_TRACE, ("%d \r\n",HAL_RTC_GetTimerValue(&RtcHandle)));
 
 	return 0;

@@ -307,6 +307,8 @@ static int buffer_transmit(int start, int len)
         UartHandle.State = HAL_UART_STATE_READY;
     }
 
+    DEBUG(ZONE_TRACE, ("ECOM: buffer_transmit : %s\r\n", &uart_context.buffTx[start]));
+
     for (i = start; i < len; i++)
     {
         HAL_UART_Transmit(&UartHandle, (uint8_t *)&uart_context.buffTx[i], 1, 0xFFFF);
