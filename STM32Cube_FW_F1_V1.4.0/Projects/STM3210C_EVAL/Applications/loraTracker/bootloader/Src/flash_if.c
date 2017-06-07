@@ -66,6 +66,84 @@ void FLASH_If_Init(void)
   HAL_FLASH_Lock();
 }
 
+uint32_t FLASH_If_GPS_Erase_Page(uint32_t Page_Address)
+{
+  uint32_t NbrOfPages = 0;
+  uint32_t PageError = 0;
+  FLASH_EraseInitTypeDef pEraseInit;
+  HAL_StatusTypeDef status = HAL_OK;
+
+  // it's possible only to erase flash between page64 and page123 
+  if( Page_Address >= ADDR_FLASH_PAGE_123  || Page_Address < ADDR_FLASH_PAGE_64 )
+  {
+    return FLASHIF_ERASEKO;
+  }
+
+  /* Unlock the Flash to enable the flash control register access *************/ 
+  HAL_FLASH_Unlock();
+
+  /* Get the sector where start the user flash area */
+  NbrOfPages = 1;//(USER_FLASH_END_ADDRESS - start)/FLASH_PAGE_SIZE;
+
+  pEraseInit.TypeErase = FLASH_TYPEERASE_PAGES;
+  pEraseInit.PageAddress = Page_Address;
+  pEraseInit.Banks = FLASH_BANK_1;
+  pEraseInit.NbPages = NbrOfPages;
+  status = HAL_FLASHEx_Erase(&pEraseInit, &PageError);
+
+  /* Lock the Flash to disable the flash control register access (recommended
+     to protect the FLASH memory against possible unwanted operation) *********/
+  HAL_FLASH_Lock();
+
+  if (status != HAL_OK)
+  {
+    /* Error occurred while page erase */
+    return FLASHIF_ERASEKO;
+  }
+
+  return FLASHIF_OK;
+}
+
+
+/**
+  * @brief  This function does an erase of all user flash area
+  * @param  start: start of user flash area
+  * @retval FLASHIF_OK : user flash area successfully erased
+  *         FLASHIF_ERASEKO : error occurred
+  */
+uint32_t FLASH_If_Erase_Page(uint32_t Page_Address)
+{
+  uint32_t NbrOfPages = 0;
+  uint32_t PageError = 0;
+  FLASH_EraseInitTypeDef pEraseInit;
+  HAL_StatusTypeDef status = HAL_OK;
+
+  /* Unlock the Flash to enable the flash control register access *************/ 
+  HAL_FLASH_Unlock();
+
+  /* Get the sector where start the user flash area */
+  NbrOfPages = 1;
+
+  pEraseInit.TypeErase = FLASH_TYPEERASE_PAGES;
+  pEraseInit.PageAddress = Page_Address;
+  pEraseInit.Banks = FLASH_BANK_1;
+  pEraseInit.NbPages = NbrOfPages;
+  status = HAL_FLASHEx_Erase(&pEraseInit, &PageError);
+
+  /* Lock the Flash to disable the flash control register access (recommended
+     to protect the FLASH memory against possible unwanted operation) *********/
+  HAL_FLASH_Lock();
+
+  if (status != HAL_OK)
+  {
+    /* Error occurred while page erase */
+    return FLASHIF_ERASEKO;
+  }
+
+  return FLASHIF_OK;
+}
+
+
 /**
   * @brief  This function does an erase of all user flash area
   * @param  start: start of user flash area

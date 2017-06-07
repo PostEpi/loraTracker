@@ -202,7 +202,7 @@ enum {
 /* Define the address from where user application will be loaded.
    Note: this area is reserved for the IAP code                  */
 #define FLASH_PAGE_STEP         FLASH_PAGE_SIZE           /* Size of page : 2 Kbytes */
-#define APPLICATION_ADDRESS     (uint32_t)0x08004000      /* Start user code address: ADDR_FLASH_PAGE_8 */
+#define APPLICATION_ADDRESS     (uint32_t)0x08008000      /* Start user code address: ADDR_FLASH_PAGE_16 */
 
 /* Notable Flash addresses */
 #define USER_FLASH_END_ADDRESS        0x08040000
@@ -217,6 +217,9 @@ enum {
                                     OB_WRP_PAGES32TO33 | OB_WRP_PAGES34TO35 | OB_WRP_PAGES36TO37 | OB_WRP_PAGES38TO39  )  
 
 
+#define GPS_FLASH_START_ADDRESS       ADDR_FLASH_PAGE_64
+#define GPS_FLASH_END_ADDRESS         ADDR_FLASH_PAGE_123
+
 /* Exported macro ------------------------------------------------------------*/
 /* ABSoulute value */
 #define ABS_RETURN(x,y)               (((x) < (y)) ? (y) : (x))
@@ -230,6 +233,8 @@ enum {
 /* Exported functions ------------------------------------------------------- */
 void FLASH_If_Init(void);
 uint32_t FLASH_If_Erase(uint32_t StartSector);
+uint32_t FLASH_If_Erase_Page(uint32_t Page_Address);
+uint32_t FLASH_If_GPS_Erase_Page(uint32_t Page_Address);
 uint32_t FLASH_If_GetWriteProtectionStatus(void);
 uint32_t FLASH_If_Write(uint32_t destination, uint32_t *p_source, uint32_t length);
 uint32_t FLASH_If_WriteProtectionConfig(uint32_t protectionstate);

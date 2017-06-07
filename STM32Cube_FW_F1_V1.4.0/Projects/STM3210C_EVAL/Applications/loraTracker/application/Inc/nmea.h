@@ -1,7 +1,7 @@
 #ifndef __NMEA_H__
 #define __NMEA_H__
 
-#include "stm32f1xx.h"
+#include "stm32f1xx_hal_conf.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,7 +23,7 @@ float	getLongitude();
 int		getSatellites();
 float	getAltitude();
 float	getSpeed();
-float	getBearing()
+float	getBearing();
 
 #ifdef __cplusplus
 }

@@ -46,10 +46,12 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <stdlib.h>
+#include <string.h>
 #include "stm32f1xx.h"
 //#include "at.h"
 #include "ecommand.h"
 #include "vdb.h"
+#include "bbox.h"
 #include "debug.h"
 
 /* comment the following to have help message */
@@ -603,6 +605,7 @@ void ECMD_Process(void)
 {
     static char command[CMD_SIZE];
     static unsigned i = 0;
+    char *prmc = NULL;
     
     element item;
     DB_TypeDef db = GPS;
@@ -648,15 +651,29 @@ void ECMD_Process(void)
         {
             if (i != 0)
             {
-                //command[i] = '\0';
-                DEBUG(ZONE_TRACE, ("%s", command));
+                prmc = strstr((const char *)command, (const char*)BBOX_STX_STRING);
+                if(prmc != NULL) 
+                {
+                    if(parsebbox(command, i))
+                    {
+                        EPRINTF("ok\r\n");
+                        if (updateDB(DEM, command, i, false) != RQUEUE_OK)
+                        {
+                            DEBUG(ZONE_ERROR, ("ECMD_Process : Update is failed to DEM @@@@\r\n"));
+                        }
+                    }
+                    else 
+                    {
+                        DEBUG(ZONE_ERROR, ("ECMD_Process : Error parebbox %s @@@@\r\n", command));        
+                    }
+                }
                 i = 0;
             }
         }
         else if (i == (CMD_SIZE - 1))
         {
             i = 0;
-            DEBUG(ZONE_TRACE, ("bffer = %s\r\n", command));
+            DEBUG(ZONE_TRACE, ("ECMD_Process : command bffer overflow = %s\r\n", command));
         }
         else 
         {

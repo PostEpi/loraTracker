@@ -42,4 +42,6 @@ inline double I_RAD2GPN( double rad ) { return rad * _DEGREE_PER_RADIAN; }
 #define sign( x ) ( (x)<0 ? -1:1 )
 
 
+double GetDistance(double dLat1, double dLon1, double dLat2, double dLon2);
+
 #endif

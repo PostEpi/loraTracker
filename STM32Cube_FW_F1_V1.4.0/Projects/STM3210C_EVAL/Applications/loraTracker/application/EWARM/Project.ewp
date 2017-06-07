@@ -165,6 +165,7 @@
         <option>
           <name>CCDefines</name>
           <state>STM32F105xC</state>
+          <state>USE_FULL_ASSERT</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -565,7 +566,7 @@
         <option>
           <name>OOCOutputFormat</name>
           <version>2</version>
-          <state>1</state>
+          <state>2</state>
         </option>
         <option>
           <name>OCOutputOverride</name>
@@ -573,7 +574,7 @@
         </option>
         <option>
           <name>OOCOutputFile</name>
-          <state>Project.hex</state>
+          <state>Project.bin</state>
         </option>
         <option>
           <name>OOCCommandLineProducer</name>
@@ -924,7 +925,13 @@
     <group>
       <name>User</name>
       <file>
+        <name>$PROJ_DIR$\..\Src\bbox.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\Src\circledistance.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\Src\demd.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\Src\ecom.c</name>
@@ -937,6 +944,9 @@
       </file>
       <file>
         <name>$PROJ_DIR$\..\Src\gcommand.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\Src\iotgps.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\Src\lcom.c</name>

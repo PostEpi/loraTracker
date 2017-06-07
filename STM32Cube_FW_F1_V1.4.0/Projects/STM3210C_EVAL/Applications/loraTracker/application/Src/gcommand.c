@@ -643,14 +643,14 @@ void GCMD_Process(void)
                         //parse_cmd(command);
                         if(updateDB(GPS, command, i, false) != RQUEUE_OK)
                         {
-                            DEBUG(ZONE_ERROR, ("Error : Update is failed to GPS\r\n"));
+                            DEBUG(ZONE_ERROR, ("GCMD_Process : Update is failed to GPS\r\n"));
                         }
                         if(gcom_report_request) 
                         {
                             gcom_report_request = false;
                             if(updateDB(DEM, command, i, false) != RQUEUE_OK)
                             {
-                                DEBUG(ZONE_ERROR, ("Error : Update is failed to DEM\r\n"));
+                                DEBUG(ZONE_ERROR, ("GCMD_Process : Update is failed to DEM\r\n"));
                             }
                         }
 

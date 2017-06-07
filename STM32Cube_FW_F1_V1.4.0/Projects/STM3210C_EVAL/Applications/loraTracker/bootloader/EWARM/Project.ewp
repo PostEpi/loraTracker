@@ -70,16 +70,16 @@
         <option>
           <name>GRuntimeLibSelect</name>
           <version>0</version>
-          <state>1</state>
+          <state>2</state>
         </option>
         <option>
           <name>GRuntimeLibSelectSlave</name>
           <version>0</version>
-          <state>1</state>
+          <state>2</state>
         </option>
         <option>
           <name>RTDescription</name>
-          <state>Use the normal configuration of the C/C++ runtime library. No locale interface, C locale, no file descriptor support, no multibytes in printf and scanf, and no hex floats in strtod.</state>
+          <state>Use the full configuration of the C/C++ runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
         </option>
         <option>
           <name>OGProductVersion</name>
@@ -133,7 +133,7 @@
         </option>
         <option>
           <name>RTConfigPath2</name>
-          <state>$TOOLKIT_DIR$\INC\c\DLib_Config_Normal.h</state>
+          <state>$TOOLKIT_DIR$\INC\c\DLib_Config_Full.h</state>
         </option>
         <option>
           <name>GFPUCoreSlave</name>
@@ -166,6 +166,7 @@
           <name>CCDefines</name>
           <state>STM32F105xC</state>
           <state>BSP_BOOTLOADER</state>
+          <state>USE_FULL_ASSERT</state>
         </option>
         <option>
           <name>CCPreprocFile</name>
@@ -565,7 +566,7 @@
         <option>
           <name>OOCOutputFormat</name>
           <version>2</version>
-          <state>1</state>
+          <state>2</state>
         </option>
         <option>
           <name>OCOutputOverride</name>
@@ -573,7 +574,7 @@
         </option>
         <option>
           <name>OOCOutputFile</name>
-          <state>Project.hex</state>
+          <state>Project.bin</state>
         </option>
         <option>
           <name>OOCCommandLineProducer</name>
@@ -990,10 +991,16 @@
         <name>$PROJ_DIR$\..\Src\flash_if.c</name>
       </file>
       <file>
+        <name>$PROJ_DIR$\..\Src\flashmenu.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\Src\main.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\Src\menu.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\Src\menulib.c</name>
       </file>
       <file>
         <name>$PROJ_DIR$\..\Src\stm32f1xx_it.c</name>

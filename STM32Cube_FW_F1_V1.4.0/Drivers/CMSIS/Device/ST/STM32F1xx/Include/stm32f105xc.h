@@ -772,7 +772,7 @@ typedef struct
 #if defined(BSP_BOOTLOADER)
 #define FLASH_BASE            ((uint32_t)0x08000000) /*!< FLASH base address in the alias region */
 #else
-#define FLASH_BASE            ((uint32_t)0x08004000) /*!< FLASH base address in the alias region */
+#define FLASH_BASE            ((uint32_t)0x08008000) /*!< FLASH base address in the alias region */
 #endif
 
 #define FLASH_BANK1_END       ((uint32_t)0x0803FFFF) /*!< FLASH END address of bank1 */

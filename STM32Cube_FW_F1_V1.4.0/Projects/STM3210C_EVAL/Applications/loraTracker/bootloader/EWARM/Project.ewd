@@ -704,7 +704,7 @@
         <debug>1</debug>
         <option>
           <name>CRDIDriverDll</name>
-          <state>###Uninitialized###</state>
+          <state>Browse to your RDI driver</state>
         </option>
         <option>
           <name>CRDILogFileCheck</name>
@@ -822,7 +822,7 @@
         </option>
         <option>
           <name>CCSTLinkInterfaceRadio</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCSTLinkInterfaceCmdLine</name>
@@ -905,6 +905,26 @@
           <state></state>
         </option>
       </data>
+    </settings>
+    <settings>
+      <name>CMSISDAP_ID</name>
+      <archiveVersion>2</archiveVersion>
+      <data/>
+    </settings>
+    <settings>
+      <name>IJET_ID</name>
+      <archiveVersion>2</archiveVersion>
+      <data/>
+    </settings>
+    <settings>
+      <name>CADI_ID</name>
+      <archiveVersion>2</archiveVersion>
+      <data/>
+    </settings>
+    <settings>
+      <name>TIFET_ID</name>
+      <archiveVersion>2</archiveVersion>
+      <data/>
     </settings>
     <debuggerPlugins>
       <plugin>

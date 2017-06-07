@@ -12,7 +12,7 @@ typedef struct _SMPTransferMeractorParam {
 	double		fFalseNorthing;
 }SMPTransferMeractorParam;
 
-double AdjustLongitude(double x)
+static double AdjustLongitude(double x)
 {
 	long count = 0;
 	for (; ; ) {
@@ -39,7 +39,7 @@ double AdjustLongitude(double x)
 	return(x);
 }
 
-void TM_Forword(double lon_deg, double lat_deg, double* x, double* y)
+static void TM_Forword(double lon_deg, double lat_deg, double* x, double* y)
 {
 	SMPTransferMeractorParam param = { GRS80_AXIS,  GRS80_FLAT,  127.000000000000, 38.0, 1, 200000, 600000 };
 
