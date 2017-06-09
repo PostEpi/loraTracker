@@ -34,12 +34,12 @@ extern UART_HandleTypeDef UartHandle;
 typedef enum { FAILED = 0,
                PASSED = !FAILED } TestStatus;
 
-#if !defined(GPS_FLASH_START_ADDRESS) && !defined(GPS_FLASH_END_ADDRESS)
+#if !defined(EF_FLASH_START_ADDRESS) && !defined(FE_FLASH_END_ADDRESS)
 #error "Please select first the FLASH Start and End addresses in main.c file..."
 #endif
 
-#define FLASH_START_ADDR GPS_FLASH_START_ADDRESS
-#define FLASH_END_ADDR GPS_FLASH_END_ADDRESS
+#define FLASH_START_ADDR EF_FLASH_START_ADDRESS
+#define FLASH_END_ADDR EF_FLASH_END_ADDRESS
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/

@@ -217,8 +217,8 @@ enum {
                                     OB_WRP_PAGES32TO33 | OB_WRP_PAGES34TO35 | OB_WRP_PAGES36TO37 | OB_WRP_PAGES38TO39  )  
 
 
-#define GPS_FLASH_START_ADDRESS       ADDR_FLASH_PAGE_64
-#define GPS_FLASH_END_ADDRESS         ADDR_FLASH_PAGE_123
+#define EF_FLASH_START_ADDRESS       ADDR_FLASH_PAGE_64
+#define EF_FLASH_END_ADDRESS         ADDR_FLASH_PAGE_126
 
 /* Exported macro ------------------------------------------------------------*/
 /* ABSoulute value */
