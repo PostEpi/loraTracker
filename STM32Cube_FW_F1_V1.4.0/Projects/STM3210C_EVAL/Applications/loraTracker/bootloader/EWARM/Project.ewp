@@ -300,6 +300,7 @@
           <state>$PROJ_DIR$\..\..\..\..\..\..\Drivers\CMSIS\Include</state>
           <state>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Inc</state>
           <state>$PROJ_DIR$\..\..\..\..\..\..\Drivers\BSP\STM3210C_LORATRACKER</state>
+          <state>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\flash</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -988,9 +989,6 @@
         <name>$PROJ_DIR$\..\Src\common.c</name>
       </file>
       <file>
-        <name>$PROJ_DIR$\..\Src\flash_if.c</name>
-      </file>
-      <file>
         <name>$PROJ_DIR$\..\Src\flashmenu.c</name>
       </file>
       <file>
@@ -1008,6 +1006,18 @@
       <file>
         <name>$PROJ_DIR$\..\Src\ymodem.c</name>
       </file>
+    </group>
+  </group>
+  <group>
+    <name>Middlewares</name>
+    <group>
+      <name>ST</name>
+      <group>
+        <name>flash</name>
+        <file>
+          <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\flash\flash_if.c</name>
+        </file>
+      </group>
     </group>
   </group>
 </project>

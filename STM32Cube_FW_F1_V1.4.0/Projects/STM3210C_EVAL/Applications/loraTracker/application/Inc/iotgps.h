@@ -7,8 +7,19 @@
 extern "C" {
 #endif
 
-bool    makeMessageEvent(char *pdata, int psize, char menufacture, char eventcode, char *pout, int *outsize);
-bool    makeMessageGPS(char *pdata, int psize, char *pout, int *outsize );
+typedef struct {
+    char    manufacture;
+    char    event;
+    char    datetime[8];
+    float   latitude;
+    float   longitude;
+    char    direction;
+    char    speed;
+    short   battordistance;         
+} IotGPS_Typedef;
+
+
+bool    getIotGPSMessage(IotGPS_Typedef *data, char *pout, int *outsize);
 
 #ifdef __cplusplus
 }

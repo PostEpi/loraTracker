@@ -668,12 +668,16 @@ void ECMD_Process(void)
                     }
                 }
                 i = 0;
+                memset((void*)command, 0, CMD_SIZE);
+
             }
         }
         else if (i == (CMD_SIZE - 1))
         {
-            i = 0;
             DEBUG(ZONE_TRACE, ("ECMD_Process : command bffer overflow = %s\r\n", command));
+
+            i = 0;
+            memset((void*)command, 0, CMD_SIZE);
         }
         else 
         {

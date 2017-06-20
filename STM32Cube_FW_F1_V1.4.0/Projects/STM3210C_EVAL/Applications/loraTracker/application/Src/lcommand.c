@@ -50,6 +50,7 @@
 //#include "at.h"
 #include "lcommand.h"
 #include "vdb.h"
+#include "demd.h"
 #include "debug.h"
 
 /* comment the following to have help message */
@@ -645,15 +646,23 @@ void LCMD_Process(void)
         {
             if (i != 0)
             {
-                command[i] = '\0';
+                if(command[0] == 10) 
+                {
+                    int reporttime = command[1];
+                    DEBUG(ZONE_TRACE, ("Reporting cycle will change to %d\r\n", reporttime));
+                    DEMD_IOcontrol(DEMD_REPORT_PERIOD_CHANGE, &reporttime, 1, NULL, 0);
+                }
                 DEBUG(ZONE_TRACE, ("lbuffer = %s", command));
                 i = 0;
+                memset((void*)command, 0, CMD_SIZE);
             }
         }
         else if (i == (CMD_SIZE - 1))
         {
+            
+            DEBUG(ZONE_ERROR, ("LORA PARAM_OVERFLOW"));;
             i = 0;
-            DEBUG(ZONE_TRACE, ("ebffer = %s\r\n", command));
+            memset((void*)command, 0, CMD_SIZE);
         }
         else
         {

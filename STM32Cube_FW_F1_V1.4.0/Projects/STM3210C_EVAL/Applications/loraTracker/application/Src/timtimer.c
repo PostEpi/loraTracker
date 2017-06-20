@@ -2,6 +2,7 @@
 //#include "stm32f1xx_hal.h"
 #include "timeServer.h"
 #include "rtc.h"
+#include "gcommand.h"
 
 static __IO uint32_t uwTimTick;
 TIM_HandleTypeDef	 TimHandle;

@@ -82,6 +82,10 @@ typedef struct
 #define SD_DUMMY_BYTE 0xFF
 #define SD_NO_RESPONSE_EXPECTED 0x80
 
+/* Iot Tracker version number */
+#define __BOOTLOADER_VERSION        (0x01)
+#define __APPLICATION_VERSION       (0x01)
+
 /**
  * @brief STM3210C EVAL BSP Driver version number
    */
@@ -299,6 +303,17 @@ uint8_t SD_IO_ReadByte(void);
 /** @defgroup STM3210C_EVAL_Exported_Functions Exported Functions
   * @{
   */
+
+char BSP_GetBootloaderVersion(void)
+{
+    return __BOOTLOADER_VERSION;
+}
+
+char BSP_GetAppVersion(void)
+{
+    return __APPLICATION_VERSION;
+}
+
 
 /**
   * @brief  This method returns the STM3210C EVAL BSP Driver revision

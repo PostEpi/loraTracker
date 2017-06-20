@@ -735,6 +735,8 @@ supply LSb is �?�?(address 0011101b) else if SDO pad is connected to ground 
 /** @addtogroup STM3210C_EVAL_Exported_Functions
   * @{
   */ 
+char                    BSP_GetBootloaderVersion(void);
+char                    BSP_GetAppVersion(void);
 uint32_t                BSP_GetVersion(void);
 void                    BSP_LED_Init(Led_TypeDef Led);
 void                    BSP_LED_On(Led_TypeDef Led);

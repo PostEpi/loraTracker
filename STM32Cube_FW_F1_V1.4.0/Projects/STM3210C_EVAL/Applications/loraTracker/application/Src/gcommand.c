@@ -640,11 +640,12 @@ void GCMD_Process(void)
                     pret = strrchr((const char*)prmc, '\n');
                     if(pret)
                     {
-                        //parse_cmd(command);
                         if(updateDB(GPS, command, i, false) != RQUEUE_OK)
                         {
                             DEBUG(ZONE_ERROR, ("GCMD_Process : Update is failed to GPS\r\n"));
                         }
+
+                        // if there is a request for periodic reporting, nmea have to be stored in the database of DEM.
                         if(gcom_report_request) 
                         {
                             gcom_report_request = false;

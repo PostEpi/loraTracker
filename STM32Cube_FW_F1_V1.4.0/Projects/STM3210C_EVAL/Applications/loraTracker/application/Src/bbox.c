@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include "bbox.h"
 #include "debug.h"
 
@@ -22,16 +21,52 @@ static	int			nWordIdx ,					// the current word in a sentence
 // globals to store parser results
 static	char		res_cManufacture;			// manufacture
 static	char		res_cEvent;					// Event
+static  short       res_sBattery;               // battery status
 
 /*
  * returns base-16 value of chars '0'-'9' and 'A'-'F';
  * does not trap invalid chars!
  */	
-static int digit2dec(char digit) {
+int digit2dec(char digit) {
 	if (digit >= 65) 
 		return digit - 55;
 	else 
 		return digit - 48;
+}
+
+
+/* returns base-10 value of zero-terminated string
+ * that contains only chars '+','-','0'-'9','.';
+ * does not trap invalid strings! 
+ */
+float string2float(char* s) {
+	long  integer_part = 0;
+	float decimal_part = 0.0;
+	float decimal_pivot = 0.1;
+	bool isdecimal = false, isnegative = false;
+	
+	char c;
+	while ( ( c = *s++) )  { 
+		// skip special/sign chars
+		if (c == '-') { isnegative = true; continue; }
+		if (c == '+') continue;
+		if (c == '.') { isdecimal = true; continue; }
+		
+		if (!isdecimal) {
+			integer_part = (10 * integer_part) + (c - 48);
+		}
+		else {
+			decimal_part += decimal_pivot * (float)(c - 48);
+			decimal_pivot /= 10.0;
+		}
+	}
+	// add integer part
+	decimal_part += (float)integer_part;
+	
+	// check negative
+	if (isnegative)  decimal_part = - decimal_part;
+
+	return decimal_part;
 }
 
 static bool parsedata() 
@@ -41,15 +76,15 @@ static bool parsedata()
 	// check checksum, and return if invalid!
 	if (nChecksum != received_cks) {
 		//m_bFlagDataReady = false;
-		DEBUG(ZONE_ERROR, ("Error : BBox checksum \r\n"))
+		DEBUG(ZONE_ERROR, ("parsedata : Error : BBox checksum \r\n"));
 		return false;
 	}
 
-	if (strstr(words[0], "$BERDP") == 0) {
+	if (strstr(words[0], BBOX_STX_STRING) == 0) {
 		// parse time
 		res_cManufacture = digit2dec(words[1][0]) * 10 + digit2dec(words[1][1]);
 		res_cEvent = digit2dec(words[2][0]) * 10 + digit2dec(words[2][1]);
-
+        res_sBattery = (short)(string2float(words[3]) * 10) ;
 		// data ready
 		bFlagDataReady = true;
 
@@ -133,4 +168,10 @@ char getbboxManufacture()
 char getbboxEvent()
 {   
     return res_cEvent;
+}
+
+
+short getbboxBattery() 
+{
+    return res_sBattery;
 }

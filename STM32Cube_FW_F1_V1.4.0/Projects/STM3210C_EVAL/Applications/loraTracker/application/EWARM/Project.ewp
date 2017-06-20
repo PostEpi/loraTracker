@@ -301,6 +301,7 @@
           <state>$PROJ_DIR$\..\..\..\..\..\..\Drivers\BSP\STM3210C_LoraTracker</state>
           <state>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\utilities</state>
           <state>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\flash</state>
+          <state>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\easyflash\inc</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -1019,6 +1020,12 @@
         <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_dma.c</name>
       </file>
       <file>
+        <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_flash.c</name>
+      </file>
+      <file>
+        <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_flash_ex.c</name>
+      </file>
+      <file>
         <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal_gpio.c</name>
       </file>
       <file>
@@ -1060,6 +1067,36 @@
     </group>
     <group>
       <name>Third_Party</name>
+      <group>
+        <name>easyflash</name>
+        <group>
+          <name>port</name>
+          <file>
+            <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\easyflash\port\ef_port.c</name>
+          </file>
+        </group>
+        <group>
+          <name>src</name>
+          <file>
+            <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\easyflash\src\easyflash.c</name>
+          </file>
+          <file>
+            <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\easyflash\src\ef_env.c</name>
+          </file>
+          <file>
+            <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\easyflash\src\ef_env_wl.c</name>
+          </file>
+          <file>
+            <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\easyflash\src\ef_iap.c</name>
+          </file>
+          <file>
+            <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\easyflash\src\ef_log.c</name>
+          </file>
+          <file>
+            <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\easyflash\src\ef_utils.c</name>
+          </file>
+        </group>
+      </group>
       <group>
         <name>utilities</name>
         <file>

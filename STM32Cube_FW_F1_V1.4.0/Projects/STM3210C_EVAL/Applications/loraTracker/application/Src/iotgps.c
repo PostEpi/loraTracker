@@ -5,12 +5,21 @@
 #include "nmea.h"
 #include "debug.h"
 
-bool    makeMessageEvent(char *pdata, int psize, char menufacture, char eventcode, char *pout, int *outsize)
+void initIotGPS()
 {
-    return false;
-}
 
-bool    makeMessageGPS(char *pdata, int psize, char *pout, int *outsize )
+}
+bool getIotGPSMessage(IotGPS_Typedef *data, char *pout, int *outsize)
 {
-    return false;
+    int formatSize = sizeof(IotGPS_Typedef);
+    if(data == NULL || pout == NULL || formatSize > *outsize) 
+    {
+         DEBUG(ZONE_ERROR, ("getIotGPSMessage : argument invalided value (0x%x 0x%x, %d)@@@@\r\n", data, pout, outsize));
+        return false;
+    }
+
+    *outsize = formatSize;
+    memcpy(pout, data, formatSize);
+
+    return true;
 }

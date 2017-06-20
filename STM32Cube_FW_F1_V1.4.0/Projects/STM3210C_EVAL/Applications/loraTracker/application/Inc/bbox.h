@@ -13,6 +13,8 @@ extern "C" {
 bool    parsebbox(char *pdata, int psize);
 
 // READER functions: retrieving results, call isbboxready() first
+int     digit2dec(char digit);
+float   string2float(char* s);
 bool	isbboxready();
 char	getbboxManufacture();
 char	getbboxEvent();
