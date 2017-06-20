@@ -40,7 +40,7 @@ extern int DebugFlag;
 
 #define ZONE_ERROR      DEBUGZONE(0)
 #define ZONE_WARN       DEBUGZONE(1)
-#define ZONE_TRACE      ZONE_WARN
+#define ZONE_TRACE      ZONE_BUFFER
 #define ZONE_FUNCTION   DEBUGZONE(2)
 #define ZONE_INIT       DEBUGZONE(3)
 #define ZONE_INTR       DEBUGZONE(4)

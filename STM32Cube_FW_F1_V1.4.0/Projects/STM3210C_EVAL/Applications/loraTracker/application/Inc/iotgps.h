@@ -7,10 +7,15 @@
 extern "C" {
 #endif
 
+#define IOTGPS_TYPE_GPSDATA     1
+#define IOTGPS_TYPE_EVENT       2
+#define IOTGPS_TYPE_USER        3
+
 typedef struct {
+    char    type;
     char    manufacture;
     char    event;
-    char    datetime[8];
+    int     datetime;
     float   latitude;
     float   longitude;
     char    direction;

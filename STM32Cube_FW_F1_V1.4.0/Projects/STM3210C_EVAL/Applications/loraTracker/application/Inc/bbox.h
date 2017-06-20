@@ -7,8 +7,15 @@
 extern "C" {
 #endif
 
-#define BBOX_MESSAGE_SIZE   10
-#define BBOX_STX_STRING     "$BERDP"
+#define BBOX_MESSAGE_SIZE   40
+#define BBOX_STX_BERDP      "$BERDP"
+#define BBOX_STR_BURDP      "$BURDP" 
+
+typedef enum {
+    BBOX_NONE_MESSAGE,
+    BBOX_ENVET_MESSAGE,
+    BBOX_USER_MESSAGE   
+}BBOX_MessageTypeDef;
 
 bool    parsebbox(char *pdata, int psize);
 
