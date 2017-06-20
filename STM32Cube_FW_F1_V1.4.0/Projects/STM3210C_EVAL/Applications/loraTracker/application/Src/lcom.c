@@ -62,10 +62,12 @@ static UART_HandleTypeDef UartHandle;
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* based on UART_HandleTypeDef */
+#define LCOM_BUFFER_BYTE_SIZE   256
+
 static struct
 {
-    char buffTx[256];     /**< buffer to transmit */
-    char buffRx[256];     /**< Circular buffer of received chars */
+    char buffTx[LCOM_BUFFER_BYTE_SIZE];     /**< buffer to transmit */
+    char buffRx[LCOM_BUFFER_BYTE_SIZE];     /**< Circular buffer of received chars */
     int rx_idx_free;      /**< 1st free index in BuffRx */
     int rx_idx_toread;    /**< next char to read in buffRx, when not rx_idx_free */
     HAL_LockTypeDef Lock; /**< Locking object */
@@ -180,11 +182,11 @@ void lcom_Send(const char *format, ...)
     DISABLE_IRQ();
     if (len != 0)
     {
-        if (len != sizeof(uart_context.buffTx))
+        if (len != LCOM_BUFFER_BYTE_SIZE)
         {
             current_len = len; /* use current_len instead of volatile len in below computation */
             len = current_len + tiny_vsnprintf_like(uart_context.buffTx + current_len,
-                                                    sizeof(uart_context.buffTx) - current_len, format, args);
+                                                    LCOM_BUFFER_BYTE_SIZE - current_len, format, args);
         }
         RESTORE_PRIMASK();
         va_end(args);
@@ -192,7 +194,7 @@ void lcom_Send(const char *format, ...)
     }
     else
     {
-        len = tiny_vsnprintf_like(uart_context.buffTx, sizeof(uart_context.buffTx), format, args);
+        len = tiny_vsnprintf_like(uart_context.buffTx, LCOM_BUFFER_BYTE_SIZE, format, args);
     }
 
     current_len = len;
@@ -279,7 +281,7 @@ uint8_t lGetNewChar(void)
     DISABLE_IRQ();
 
     NewChar = uart_context.buffRx[uart_context.rx_idx_toread];
-    uart_context.rx_idx_toread = (uart_context.rx_idx_toread + 1) % sizeof(uart_context.buffRx);
+    uart_context.rx_idx_toread = (uart_context.rx_idx_toread + 1) % LCOM_BUFFER_BYTE_SIZE;
 
     RESTORE_PRIMASK();
     return NewChar;
@@ -305,7 +307,7 @@ void lcom_IRQHandler(void)
     if ((tmp_flag != RESET) && (tmp_it_source != RESET))
     {
             //HAL_UART_ErrorCallback(huart);
-        DEBUG(ZONE_ERROR, ("UART ERROR = %x\r\n", huart->ErrorCode));
+        DEBUG(ZONE_ERROR, ("LUART ERROR = %x\r\n", huart->ErrorCode));
         
         /* Clear all the error flag at once */
         __HAL_UART_CLEAR_PEFLAG(huart);
@@ -342,7 +344,7 @@ static void receive(char rx)
 
     /** no need to clear the RXNE flag because it is auto cleared by reading the data*/
     uart_context.buffRx[uart_context.rx_idx_free] = rx;
-    next_free = (uart_context.rx_idx_free + 1) % sizeof(uart_context.buffRx);
+    next_free = (uart_context.rx_idx_free + 1) % LCOM_BUFFER_BYTE_SIZE;
     if (next_free != uart_context.rx_idx_toread)
     {
         /* this is ok to read as there is no buffer overflow in input */
@@ -351,8 +353,10 @@ static void receive(char rx)
     else
     {
         /* force the end of a command in case of overflow so that we can process it */
-        uart_context.buffRx[uart_context.rx_idx_free] = '\r';
-        DEBUG(ZONE_ERROR, ("uart_context.buffRx buffer overflow %d\r\n"));
+        //uart_context.buffRx[uart_context.rx_idx_free] = '\r';
+        uart_context.rx_idx_toread = 0;
+        uart_context.rx_idx_free = 0;
+        DEBUG(ZONE_ERROR , ("\r\n\r\n\r\n luart_context.buffRx buffer overflow \r\n\r\n\r\n"));
     }
 }
 

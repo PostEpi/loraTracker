@@ -46,6 +46,7 @@
 /* Exported variables --------------------------------------------------------*/
 /* UART handler declaration */
 UART_HandleTypeDef UartHandle;
+UART_HandleTypeDef ExUartHandle;
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -64,6 +65,7 @@ extern uint32_t JumpAddress;
 #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
 #endif /* __GNUC__ */
 
+static void EXT_Init(void);
 static void IAP_Init(void);
 void SystemClock_Config(void);
 
@@ -76,17 +78,21 @@ int main(void)
 {
 
     /* Test if user code is programmed starting from address "APPLICATION_ADDRESS" */
-    if (((*(__IO uint32_t *)APPLICATION_ADDRESS) & 0x2FFE0000) == 0x20000000)
+#if 1
+    if(!BSP_IsDownloadModeActivated())
     {
-        /* Jump to user application */
-        JumpAddress = *(__IO uint32_t *)(APPLICATION_ADDRESS + 4);
-        JumpToApplication = (pFunction)JumpAddress;
-        /* Initialize user application's Stack Pointer */
-        __set_MSP(*(__IO uint32_t *)APPLICATION_ADDRESS);
-        JumpToApplication();
+        if (((*(__IO uint32_t *)APPLICATION_ADDRESS) & 0x2FFE0000) == 0x20000000)
+        {
+             /* Jump to user application */
+             JumpAddress = *(__IO uint32_t *)(APPLICATION_ADDRESS + 4);
+             JumpToApplication = (pFunction)JumpAddress;
+             /* Initialize user application's Stack Pointer */
+             __set_MSP(*(__IO uint32_t *)APPLICATION_ADDRESS);
+             JumpToApplication();
+        }
     }
-
-
+#endif
+    
     /* STM32F107xC HAL library initialization:
        - Configure the Flash prefetch
        - Systick timer is configured by default as source of time base, but user 
@@ -108,12 +114,28 @@ int main(void)
     /* Test if Key push-button on STM3210C-EVAL RevC Board is pressed */
     //if (BSP_PB_GetState(BUTTON_KEY) == GPIO_PIN_RESET)
     {
+        char key;
+        char msg[] = " ***** welcome externel port. press any key ****** \r\n";
+
         /* Initialise Flash */
         FLASH_If_Init();
         /* Execute the IAP driver in order to reprogram the Flash */
         IAP_Init();
+        /* Execute the Download driver in order to reprogram the Flash */
+        EXT_Init();
+
+#if 1
+        // sample code for externel uart (blackbox)
+        HAL_UART_Transmit(&ExUartHandle, msg, sizeof(msg), 0xffffffff);
+        HAL_UART_Receive(&ExUartHandle, &key, 1, 0xffffffff);
+        HAL_UART_Transmit(&ExUartHandle, &key, sizeof(key), 0xffffffff);
+        
+        BSP_Booting_Reset();
+#endif 
         /* Display main menu */
         Main_Menu();
+
+        
     }
 
     while (1)
@@ -247,6 +269,39 @@ void IAP_Init(void)
 
     BSP_COM_Init(COM1, &UartHandle);
 }
+
+
+/**
+  * @brief  Initialize the IAP: Configure USART.
+  * @param  None
+  * @retval None
+  */
+static void EXT_Init(void)
+{
+    /* USART resources configuration (Clock, GPIO pins and USART registers) ----*/
+    /* USART configured as follow:
+        - BaudRate = 115200 baud  
+        - Word Length = 8 Bits
+        - One Stop Bit
+        - No parity
+        - Hardware flow control disabled (RTS and CTS signals)
+        - Receive and transmit enabled
+  */
+    ExUartHandle.Instance = EXT_USARTx;
+    ExUartHandle.Init.BaudRate = 9600;
+    ExUartHandle.Init.WordLength = UART_WORDLENGTH_8B;
+    ExUartHandle.Init.StopBits = UART_STOPBITS_1;
+    ExUartHandle.Init.Parity = UART_PARITY_NONE;
+    ExUartHandle.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    ExUartHandle.Init.Mode = UART_MODE_RX | UART_MODE_TX;
+
+    if (HAL_UART_Init(&ExUartHandle) != HAL_OK)
+    {
+        while(1);
+    }
+}
+
+
 
 #ifdef USE_FULL_ASSERT
 /**

@@ -218,7 +218,9 @@ enum {
 
 
 #define EF_FLASH_START_ADDRESS       ADDR_FLASH_PAGE_64
-#define EF_FLASH_END_ADDRESS         ADDR_FLASH_PAGE_126
+#define EF_FLASH_END_ADDRESS         ADDR_FLASH_PAGE_120
+
+#define SP_FLASH_START_ADDRESS        ADDR_FLASH_PAGE_121
 
 /* Exported macro ------------------------------------------------------------*/
 /* ABSoulute value */

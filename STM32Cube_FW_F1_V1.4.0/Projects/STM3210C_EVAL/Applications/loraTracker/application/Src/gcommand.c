@@ -633,18 +633,18 @@ void GCMD_Process(void)
         {
             if (i != 0)
             {
-                prmc = strstr((const char *)command, (const char*)"$GPRMC");
-                if(prmc != NULL) 
+                if (updateDB(GPS, command, i+1, false) != RQUEUE_OK)
+                {
+                    DEBUG(ZONE_ERROR, ("GCMD_Process : Update is failed to GPS\r\n"));
+                }
+
+                prmc = strstr((const char *)command, (const char *)"$GPRMC");
+                if (prmc != NULL)
                 {
                     pret = NULL;
                     pret = strrchr((const char*)prmc, '\n');
                     if(pret)
                     {
-                        if(updateDB(GPS, command, i, false) != RQUEUE_OK)
-                        {
-                            DEBUG(ZONE_ERROR, ("GCMD_Process : Update is failed to GPS\r\n"));
-                        }
-
                         // if there is a request for periodic reporting, nmea have to be stored in the database of DEM.
                         if(gcom_report_request) 
                         {
@@ -656,12 +656,7 @@ void GCMD_Process(void)
                         }
 
                         DEBUG(ZONE_TRACE, ("GCMD_Process %s", command));
-
-                        i = 0;
-                        memset((void*)command, 0, GPS_CMD_SIZE);
-                        
                     }
-                    return;
                 }
                 i = 0;
                 memset((void*)command, 0, GPS_CMD_SIZE);

@@ -63,6 +63,7 @@
 #include "stm32f1xx_hal.h"
 
 
+
 /** @defgroup STM3210C_EVAL_Exported_Types Exported Types
   * @{
   */
@@ -247,6 +248,7 @@ typedef enum
  */
 
 #if defined(BSP_V500_TEST)
+
 #define OUTGPIOn                          6
 
 #define WDI_HOLD_PIN                    GPIO_PIN_0
@@ -294,7 +296,6 @@ typedef enum
                                                  ((__OUTPUTGPIO__) == OUTPUT_LORA_POWER) LORA_POWER_EN_CLK_DISABLE()  :\
                                                  ((__OUTPUTGPIO__) == OUTPUT_LORA_RESET) LORA_RESET_EN_CLK_DISABLE()  : 0 )
 #else
-
 #define OUTGPIOn                          3
 
 #define WKUP_PIN                          GPIO_PIN_0
@@ -742,6 +743,15 @@ void                    BSP_LED_Init(Led_TypeDef Led);
 void                    BSP_LED_On(Led_TypeDef Led);
 void                    BSP_LED_Off(Led_TypeDef Led);
 void                    BSP_LED_Toggle(Led_TypeDef Led);
+
+bool                    BSP_IsDownloadModeActivated(void);
+void                    BSP_Download_Reset(void);
+void                    BSP_Booting_Reset(void);
+
+void                    BSP_HW_Reset(void);
+void                    BSP_GPS_HW_Reset(void);
+void                    BSP_Lora_HW_Reset(void);
+void                    BSP_Lora_Wakeup(void);
 void                    BSP_PB_Init(Button_TypeDef Button, ButtonMode_TypeDef Button_Mode);
 uint32_t                BSP_PB_GetState(Button_TypeDef Button);
 #ifdef HAL_UART_MODULE_ENABLED

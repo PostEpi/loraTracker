@@ -38,6 +38,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm3210c_loraTracker.h"
+#include "flash_if.h"
 
 /** @addtogroup BSP
   * @{
@@ -392,9 +393,134 @@ void BSP_LED_Off(Led_TypeDef Led)
   *     @arg LED4
   * @retval None
   */
+#define SIGNAUTURE_EMERGENCE    0x69696969
+
 void BSP_LED_Toggle(Led_TypeDef Led)
 {
     HAL_GPIO_TogglePin(LED_PORT[Led], LED_PIN[Led]);
+}
+
+bool BSP_IsDownloadModeActivated(void)
+{
+    uint32_t Address = SP_FLASH_START_ADDRESS;
+
+    if((*(__IO uint32_t *)Address) == SIGNAUTURE_EMERGENCE)
+    {
+      return true;
+    }
+    
+    return false;
+}
+
+void BSP_Download_Reset(void)
+{
+    __IO uint32_t FLASHStatus = FLASHIF_OK;
+    uint32_t Address = SP_FLASH_START_ADDRESS;
+    int signature = SIGNAUTURE_EMERGENCE;
+    int retry = 3;
+    
+    /* Unlock the Program memory */
+    HAL_FLASH_Unlock();
+
+    /* Clear all FLASH flags */
+    __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
+
+    /* Unlock the Program memory */
+    HAL_FLASH_Lock();
+    
+    FLASHStatus = FLASH_If_GPS_Erase_Page(Address);
+    if (FLASHStatus != FLASHIF_OK)
+    {
+        printf("  the erase process is failed...\r\n");
+    }
+    else
+    {
+      while(retry--) {
+        FLASHStatus = FLASH_If_Write(Address, &signature, 1);
+        if (FLASHStatus == FLASHIF_OK)
+        {
+            HAL_NVIC_SystemReset();
+        }
+        else
+        {
+            /* Unlock the Program memory */
+            HAL_FLASH_Unlock();
+            
+            __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
+            
+            /* Unlock the Program memory */
+            HAL_FLASH_Lock();
+          
+        }
+      }   
+        
+    }
+}
+
+void BSP_Booting_Reset(void)
+{
+    __IO uint32_t FLASHStatus = FLASHIF_OK;
+    uint32_t Address = SP_FLASH_START_ADDRESS;
+    int signature = 0;
+    int retry = 3;
+    
+    /* Unlock the Program memory */
+    HAL_FLASH_Unlock();
+
+    /* Clear all FLASH flags */
+    __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
+
+    /* Unlock the Program memory */
+    HAL_FLASH_Lock();
+    
+    FLASHStatus = FLASH_If_GPS_Erase_Page(Address);
+    if (FLASHStatus != FLASHIF_OK)
+    {
+        printf("  the erase process is failed...\r\n");
+    }
+    else
+    {
+      while(retry--) {
+        FLASHStatus = FLASH_If_Write(Address, &signature, 1);
+        if (FLASHStatus == FLASHIF_OK)
+        {
+            HAL_NVIC_SystemReset();
+        }
+        else
+        {
+            /* Unlock the Program memory */
+            HAL_FLASH_Unlock();
+            
+            __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
+            
+            /* Unlock the Program memory */
+            HAL_FLASH_Lock();
+          
+        }
+      }   
+        
+    }
+}
+
+void BSP_GPS_HW_Reset(void)
+{
+    BSP_OUTGPIO_High(OUTPUT_PRST);
+    HAL_Delay(10);
+    BSP_OUTGPIO_Low(OUTPUT_PRST);
+}
+
+void BSP_Lora_HW_Reset(void)
+{
+    BSP_OUTGPIO_Low(OUTPUT_NRST);
+    HAL_Delay(10);
+    BSP_OUTGPIO_High(OUTPUT_NRST);
+}
+
+void BSP_Lora_Wakeup(void)
+{
+    BSP_OUTGPIO_Low(OUTPUT_WKUP);
+    HAL_Delay(1);
+    BSP_OUTGPIO_High(OUTPUT_WKUP);
 }
 
 

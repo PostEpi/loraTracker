@@ -652,7 +652,7 @@ void LCMD_Process(void)
                     DEBUG(ZONE_TRACE, ("Reporting cycle will change to %d\r\n", reporttime));
                     DEMD_IOcontrol(DEMD_REPORT_PERIOD_CHANGE, &reporttime, 1, NULL, 0);
                 }
-                DEBUG(ZONE_TRACE, ("lbuffer = %s", command));
+                DEBUG(ZONE_TRACE, ("LCMD_Process : %s", command));
                 i = 0;
                 memset((void*)command, 0, CMD_SIZE);
             }
