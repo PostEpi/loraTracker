@@ -17,6 +17,7 @@ typedef enum {
 typedef enum {
     DEMD_REPORT_PERIOD_CHANGE = 0,
     DEMD_REPORT_TO_SERVER_FAILED,
+    DEMD_REPORT_TO_SERVER_SUCCEED
 } DEMD_IOControlTypedef;
 
 

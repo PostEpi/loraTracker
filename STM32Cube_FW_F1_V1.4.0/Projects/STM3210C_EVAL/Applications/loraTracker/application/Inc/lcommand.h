@@ -58,7 +58,7 @@ extern "C" {
 /* Exported types ------------------------------------------------------------*/
 
 typedef enum {
-    LCOM_REPORT_REQUEST = 0,
+    LCOM_REPORT_TO_SERVER_FAILED = 0,
 } LCOM_IOControlTypedef;
 
 /* Exported constants --------------------------------------------------------*/

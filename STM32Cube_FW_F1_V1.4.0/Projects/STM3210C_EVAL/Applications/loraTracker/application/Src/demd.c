@@ -13,74 +13,43 @@
 
 #define DEMD_PROCESS_LOG_SIZE       16
 #define SETTING_PERIOD_REPORT_CYCLE "period_report_cycle"
-
-const int REPORTITME[] = {120000, 600000, 300000, 60000 };
-
+#define MIN1                       60000
 
 
 static TimerEvent_t reportToserverTimer;
 static int reportPeriodIndex = 0;
-static BBOX_MessageTypeDef reportBBox = BBOX_NONE_MESSAGE;
+static IOT_MessageTypeDef reportType = IOT_TYPE_NONE;
 
 char log[DEMD_PROCESS_LOG_SIZE];
 static float prevLatitude = 0.0;
-static float pevLongitude = 0.0;
+static float prevLongitude = 0.0;
 
-static int getReportTime(int value);
+static int getReportCycleFromFlash();
+static bool getFinalPositionFromFlash(float *Latitude, float *Longitude);
+static bool setFinalPositionToFlash(float Latitude, float Longitude);
+static int  getReportTime(int value);
 static void OnReportToServerTimer(void);
 static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize);
-static int getSecFromDateAndTime();
+static int  getSecFromDateAndTime();
 static void itohex(char *buf, int size, int value);
+static bool storeReportCycle(int value);
+
 
 void DEMD_Init()
 {
-
-    int value ;
-    char c_report[10];
-    char *reportenv;
-    
     DEBUG(ZONE_INIT, ("+DEMD_Init\r\n"));
     
+    // It brings dat from flash memory to set default value.
     easyflash_init();
-
-    reportenv = ef_get_env(SETTING_PERIOD_REPORT_CYCLE);
-    value = atoi(reportenv);
-    if(value > sizeof(REPORTITME) - 1 || value < 1 )
-    {
-      value = 1;
-    }
+    reportPeriodIndex = getReportCycleFromFlash();
+    getFinalPositionFromFlash(&prevLatitude, &prevLongitude);
     
-    reportPeriodIndex = value;
-    DEBUG(ZONE_TRACE, ("report cycle %d\r\n", reportPeriodIndex));
- 
-    reportPeriodIndex = 0;
-    DEBUG(ZONE_TRACE, ("report cycle testing ~~~~~ %d\r\n", reportPeriodIndex));
- 
-                
-    /* interger to string */
-    //sprintf(c_report,"%ld", reportPeriodIndex);
- 
-    /* set and store the boot count number to Env */
-    //ef_set_env(SETTING_PERIOD_REPORT_CYCLE, c_report);
-    //ef_save_env();
-    
-    ef_read_final_log((uint32_t *)log, DEMD_PROCESS_LOG_SIZE);
-    DEBUG(ZONE_TRACE, ("read a log on the flash %s\r\n",log));
-
-    // get previous message sent to sever from flash.
-    // get the period value 
-    memset(c_report, 0, sizeof(c_report));
-    prevLatitude = atof(strncpy(c_report, log, 8));
-    memset(c_report, 0, sizeof(c_report));
-    pevLongitude = atof(strncpy(c_report, log+8, 8));
-    // prevLatitude = 0.0;
-    // pevLongitude = 0.0;
-    
+    // The report timer runs.
     TimerInit(&reportToserverTimer, OnReportToServerTimer);
 	TimerSetValue(&reportToserverTimer, getReportTime(reportPeriodIndex)); /* 1000ms */
 	TimerStart(&reportToserverTimer);
     
-    DEBUG(ZONE_INIT, ("-DEMD_Init prevLatitude=%f pevLongitude=%f\r\n", prevLatitude, pevLongitude));
+    DEBUG(ZONE_INIT, ("-DEMD_Init prevLatitude=%f pevLongitude=%f\r\n", prevLatitude, prevLongitude));
 }
 
 void DEMD_Process()
@@ -99,16 +68,13 @@ void DEMD_Process()
 
         if(parseMessage(item.edata, item.size, iotMessage, &iotSize))
         {
+            // it will send iotMessage to Lora Port. So Lora Port has sent it through Lora network.
+            // if sending it is successful, position of iotMessage is stored to flash.
             if(updateDB(LOR, iotMessage, iotSize, true) != RQUEUE_OK)
             {
                 DEBUG(ZONE_ERROR, ("DEMD_Process : Update is failed to LOR @@@@ \r\n"));
                 return;
             }
-
-            sprintf(log, "%08f%08f", prevLatitude, pevLongitude);
-            DEBUG(ZONE_FUNCTION, ("DEMD_Process : %s\r\n", log));
-            ef_log_write((uint32_t *)log, DEMD_PROCESS_LOG_SIZE);
-
         }
         else 
         {
@@ -131,8 +97,7 @@ DEMD_StatusTypeDef DEMD_IOcontrol(DEMD_IOControlTypedef io, int *input, int insi
         // parser for input.
         if(input != NULL && insize > 0)
         {
-            char c_report[5];
-            if(*input > sizeof(REPORTITME) - 1 )
+            if(*input > 255 )
             {
                 DEBUG(ZONE_ERROR, ("DEMD_IOcontrol : invalided report time (%d)@@@@\r\n", *input));
                 break;
@@ -141,12 +106,7 @@ DEMD_StatusTypeDef DEMD_IOcontrol(DEMD_IOControlTypedef io, int *input, int insi
             // periodic time for reporting get to be changed.
             reportPeriodIndex = *input;
             
-            /* interger to string */
-            sprintf(c_report,"%ld", reportPeriodIndex);
-            
-            /* set and store the boot count number to Env */
-            ef_set_env(SETTING_PERIOD_REPORT_CYCLE, c_report);
-            ef_save_env();
+            storeReportCycle(reportPeriodIndex);
             
             TimerStop(&reportToserverTimer);
             TimerSetValue(&reportToserverTimer, getReportTime(reportPeriodIndex));
@@ -157,6 +117,9 @@ DEMD_StatusTypeDef DEMD_IOcontrol(DEMD_IOControlTypedef io, int *input, int insi
         // 
         
         break;
+    case DEMD_REPORT_TO_SERVER_SUCCEED:
+        setFinalPositionToFlash(prevLatitude, prevLongitude);
+        break;    
     default:
         ret = DEMD_PARAM_ERROR;
     }
@@ -165,15 +128,78 @@ DEMD_StatusTypeDef DEMD_IOcontrol(DEMD_IOControlTypedef io, int *input, int insi
     return ret;
 }
 
-static int getReportTime(int value)
+static int getReportCycleFromFlash()
 {
-    if(value > sizeof(REPORTITME) - 1 )
+    int value;
+    char *reportenv;
+    
+    reportenv = ef_get_env(SETTING_PERIOD_REPORT_CYCLE);
+    value = atoi(reportenv);
+    if(value > 255 )
     {
-        DEBUG(ZONE_ERROR, ("getReportTime : invalided value (%d)@@@@\r\n", value));
-        return REPORTITME[1];
+        value = 1;
+    }
+    
+    DEBUG(ZONE_FUNCTION, ("report cycle %d\r\n", value));
+
+    return value;
+}
+
+static bool getFinalPositionFromFlash(float *Latitude, float *Longitude)
+{
+    char c_report[10];
+              
+    /* interger to string */
+    //sprintf(c_report,"%3d", reportPeriodIndex);
+ 
+    /* set and store the boot count number to Env */
+    //ef_set_env(SETTING_PERIOD_REPORT_CYCLE, c_report);
+    //ef_save_env();
+    
+    if(ef_read_final_log((uint32_t *)log, DEMD_PROCESS_LOG_SIZE) != EF_NO_ERR)
+    {
+        DEBUG(ZONE_ERROR, ("Reading a log on the flash is failed @@@@(%s)\r\n",log));
+        *Latitude = 0.0;
+        *Longitude = 0.0;
+
+        return false;
+      
+    }
+    DEBUG(ZONE_TRACE, ("read a log on the flash %s\r\n",log));
+
+    // get previous message sent to sever from flash.
+    // get the period value 
+    memset(c_report, 0, sizeof(c_report));
+    *Latitude = atof(strncpy(c_report, log, 8));
+    memset(c_report, 0, sizeof(c_report));
+    *Longitude = atof(strncpy(c_report, log+8, 8));
+
+    return true;
+}
+
+static bool setFinalPositionToFlash(float Latitude, float Longitude)
+{
+    sprintf(log, "%08f%08f", Latitude, Longitude);
+    DEBUG(ZONE_FUNCTION, ("setFinalPositionToFlash : %s\r\n", log));
+
+    if(ef_log_write((uint32_t *)log, DEMD_PROCESS_LOG_SIZE) != EF_NO_ERR)
+    {
+        DEBUG(ZONE_ERROR, ("setFinalPositionToFlash : To store data to flash is failed @@@@ \r\n"));
+        return false;
     }
 
-    return REPORTITME[value];
+    return true;
+}
+
+static int getReportTime(int value)
+{
+    if(value > 255)
+    {
+        DEBUG(ZONE_ERROR, ("getReportTime : invalided value (%d)@@@@\r\n", value));
+        return MIN1;
+    }
+
+    return value*MIN1;
 }
 
 static void OnReportToServerTimer(void)
@@ -199,7 +225,7 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
             DEBUG(ZONE_TRACE, ("parseMessage : BBox Message be arrrived \r\n"));
 
             // to request data from the gps process.
-            reportBBox = BBOX_ENVET_MESSAGE;
+            reportType = IOT_TYPE_EVENT;
 
             // backup data to make a message after getting gps data.
             memset(commandbbox, 0, BBOX_MESSAGE_SIZE);
@@ -225,19 +251,26 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
             if(!isbboxready()) 
             {
                 DEBUG(ZONE_ERROR, ("parseMessage : Error : BBox message is not valied @@@@\r\n"));
-                reportBBox = BBOX_NONE_MESSAGE;
+                reportType = IOT_TYPE_NONE;
             }
             else
             {
+                IotUser_Typedef iotU;
                 psize = getUserMessage(commandbbox, psize);
-                getIotUserMessage(commandbbox, psize, pout, poutsize);
+
+                iotU.type = IOT_TYPE_USER;
+                iotU.manufacture = getbboxManufacture();
+                memset(iotU.event, 0, sizeof(iotU.event));
+                memcpy(iotU.event, commandbbox, psize);
+
+                getIotUserMessage(&iotU, pout, poutsize);
                 ret = true;
             }
         }
 
         return ret;
     }
-    else if(reportBBox == BBOX_ENVET_MESSAGE)
+    else if(reportType == IOT_TYPE_EVENT)
     {
         DEBUG(ZONE_FUNCTION, ("parseMessage : New message will be made by BBox and GPS data\r\n"));
 
@@ -245,7 +278,7 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
         if(!isbboxready()) 
         {
             DEBUG(ZONE_ERROR, ("parseMessage : Error : BBox message is not valied @@@@\r\n"));
-            reportBBox = BBOX_NONE_MESSAGE;
+            reportType = IOT_TYPE_NONE;
             return false;
         }
 
@@ -253,24 +286,24 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
         if(isbboxready() && isdataready()) 
         {
             int i = 0;
-            reportBBox = BBOX_NONE_MESSAGE;
+            reportType = IOT_TYPE_NONE;
 
-            IotGPS_Typedef iot;
-            iot.type = IOTGPS_TYPE_EVENT;
-            iot.manufacture = getbboxManufacture();
-            iot.event = getbboxEvent();
-            //itohex(iot.datetime, 4, getSecFromDateAndTime(getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond()));
-            iot.datetime = getSecFromDateAndTime(getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond());
-            iot.latitude = getLatitude();
-            iot.longitude = getLongitude();
-            iot.direction = (int)getBearing()/3;
-            iot.speed = getSpeed();
-            iot.battordistance = getbboxBattery();
+            IotEvent_Typedef iotE;
+            iotE.type = IOT_TYPE_EVENT;
+            iotE.manufacture = getbboxManufacture();
+            iotE.event = getbboxEvent();
+            //itohex(iotE.datetime, 4, getSecFromDateAndTime(getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond()));
+            iotE.datetime = getSecFromDateAndTime(getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond());
+            iotE.latitude = getLatitude();
+            iotE.longitude = getLongitude();
+            iotE.direction = ((int)getBearing())/3;
+            iotE.speed = getSpeed();
+            sprintf(&iotE.battery, "%c", getbboxBattery());
 
-            prevLatitude = iot.latitude;
-            pevLongitude = iot.longitude;  
+            prevLatitude = iotE.latitude;
+            prevLongitude = iotE.longitude;  
             
-            return getIotGPSMessage(&iot, pout, poutsize);
+            return getIotEventMessage(&iotE, pout, poutsize);
         }
         else
         {
@@ -285,18 +318,19 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
         if(isdataready())
         {
             IotGPS_Typedef iot;
-            iot.type = IOTGPS_TYPE_GPSDATA;
-            iot.manufacture = BSP_GetAppVersion();
-            sprintf(&iot.event, "%c", reportPeriodIndex);
+            iot.type = IOT_TYPE_GPSDATA;
+            iot.version = BSP_GetAppVersion();
+            sprintf(&iot.reportcycle, "%c", reportPeriodIndex);
             iot.datetime = getSecFromDateAndTime(getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond());
             iot.latitude = getLatitude();
             iot.longitude = getLongitude();
-            iot.direction = (int)getBearing()/3;
+            iot.direction = ((int)getBearing())/3;
             iot.speed = getSpeed();
-            iot.battordistance = GetDistance(iot.latitude, iot.longitude, prevLatitude, pevLongitude);  
+            iot.cumulativedistance = GetDistance(iot.latitude, iot.longitude, prevLatitude, prevLongitude);  
+            iot.statusofcar = 1;
             
             prevLatitude = iot.latitude;
-            pevLongitude = iot.longitude;  
+            prevLongitude = iot.longitude;  
             
             return getIotGPSMessage(&iot, pout, poutsize);
         }
@@ -310,10 +344,10 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
 
 static int getSecFromDateAndTime(int year, int month, int day, int hour, int min, int sec )
 {
-   char      *week[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-   time_t     user_time;
-   struct tm  user_stime;
-   struct tm *ptr_stime;
+    char *week[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+    time_t user_time;
+    struct tm user_stime;
+    struct tm *ptr_stime;
 
 #if 0
    user_stime.tm_year   = year   -1900;   // cf :year after 1900
@@ -324,30 +358,54 @@ static int getSecFromDateAndTime(int year, int month, int day, int hour, int min
    user_stime.tm_sec    = sec;
    user_stime.tm_isdst  = 0;           // don't use summer time.
 #endif
-   
-   user_stime.tm_year   = 2017   -1900;   // 주의 :년도는 1900년부터 시작
-   user_stime.tm_mon    = 6      -1;      // 주의 :월은 0부터 시작
-   user_stime.tm_mday   = 20;
-   user_stime.tm_hour   = 10;
-   user_stime.tm_min    = 12;
-   user_stime.tm_sec    = 55;
-   user_stime.tm_isdst  = 0;           // 썸머 타임 사용 안함
-   
-   user_time   = mktime( &user_stime);
-   ptr_stime = localtime( &user_time);
 
-   printf( "%d sec\r\n"        , user_time);
-   printf( "%4d year\r\n"        , ptr_stime->tm_year +1900);
-   printf( "  %2d Mon(0-11)\r\n", ptr_stime->tm_mon  +1   );
-   printf( "  %2d Day(1-31)\r\n", ptr_stime->tm_mday      );
-   printf( "%s\r\n"        , week[ptr_stime->tm_wday]);
-   printf( "  %2d H(0-23)\r\n", ptr_stime->tm_hour      );
-   printf( "  %2d M(0-59)\r\n", ptr_stime->tm_min       );
-   printf( "  %2d S(0-59)\r\n", ptr_stime->tm_sec       );
-   printf( "1M 1D after day: %3d \r\n", ptr_stime->tm_yday);
-   if      ( 0 <  ptr_stime->tm_isdst)    printf( "Summer Time on\r\n"     );
-   else if ( 0 == ptr_stime->tm_isdst)    printf( "Summer Time off\r\n");
-   else                                   printf( "Summer Time disabled\r\n");
+    user_stime.tm_year = 2017 - 1900; 
+    user_stime.tm_mon = 6 - 1;        
+    user_stime.tm_mday = 20;
+    user_stime.tm_hour = 10;
+    user_stime.tm_min = 12;
+    user_stime.tm_sec = 55;
+    user_stime.tm_isdst = 0; 
 
-   return user_time;
+    user_time = mktime(&user_stime);
+    ptr_stime = localtime(&user_time);
+
+#if 0
+    printf("%d sec\r\n", user_time);
+    printf("%4d year\r\n", ptr_stime->tm_year + 1900);
+    printf("  %2d Mon(0-11)\r\n", ptr_stime->tm_mon + 1);
+    printf("  %2d Day(1-31)\r\n", ptr_stime->tm_mday);
+    printf("%s\r\n", week[ptr_stime->tm_wday]);
+    printf("  %2d H(0-23)\r\n", ptr_stime->tm_hour);
+    printf("  %2d M(0-59)\r\n", ptr_stime->tm_min);
+    printf("  %2d S(0-59)\r\n", ptr_stime->tm_sec);
+    printf("1M 1D after day: %3d \r\n", ptr_stime->tm_yday);
+
+    
+    if (0 < ptr_stime->tm_isdst)
+        printf("Summer Time on\r\n");
+    else if (0 == ptr_stime->tm_isdst)
+        printf("Summer Time off\r\n");
+    else
+        printf("Summer Time disabled\r\n");
+#endif
+    
+    return user_time;
+}
+
+static bool storeReportCycle(int value)
+{
+    char c_report[5];
+    
+    if(value > 255)
+    {
+        DEBUG(ZONE_ERROR, ("storeReportCycle : invalided report time (%d)@@@@\r\n", value));
+        return false;
+    }
+    /* interger to string */
+    sprintf(c_report, "%3d", value);
+
+    /* set and store the boot count number to Env */
+    ef_set_env(SETTING_PERIOD_REPORT_CYCLE, c_report);
+    ef_save_env();
 }

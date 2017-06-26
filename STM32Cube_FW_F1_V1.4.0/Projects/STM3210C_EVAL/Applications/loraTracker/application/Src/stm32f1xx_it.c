@@ -223,6 +223,31 @@ void UART4_IRQHandler(void)
     gcom_IRQHandler();
 }
 #endif
+
+void HAL_Delay(__IO uint32_t Delay){
+	/* Delay for amount of milliseconds */
+	/* Check if we are called from ISR */
+	if (__get_IPSR() == 0) {
+		/* Called from thread mode */
+		uint32_t tickstart = HAL_GetTick();
+		
+		/* Count interrupts */
+		while ((HAL_GetTick() - tickstart) < Delay) {
+#ifdef DELAY_SLEEP
+			/* Go sleep, wait systick interrupt */
+			__WFI();
+#endif
+		}
+	} else {
+		/* Called from interrupt mode */
+		while (Delay) {
+			/* Check if timer reached zero after we last checked COUNTFLAG bit */
+			if (SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk) {
+				Delay--;
+			}
+		}
+	}
+}
 /******************************************************************************/
 /*                 STM32F1xx Peripherals Interrupt Handlers                   */
 /*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */

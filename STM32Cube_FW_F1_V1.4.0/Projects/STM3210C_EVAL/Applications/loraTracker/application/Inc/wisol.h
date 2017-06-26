@@ -103,4 +103,9 @@
 #define CID_TX_MESSAGE_BINARY_DATA_LENGTH               		"%d"   // 0x1 ~ 0xF2
 
 
+typedef void (*callbackFunc)(const char *cmd, int size); 
+void initWisol(callbackFunc cb);
+bool writeLRW(const char *msg, int size);
+bool parser_Wisol(const char *cmd, int size);
+
 #endif //__WISOL_H_

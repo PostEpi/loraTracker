@@ -117,6 +117,13 @@ void lcom_IoDeInit(void);
 void lcom_Send(const char *format, ...);
 
 /**
+ * @brief  Sends string included NULL on com port
+ * @param  String
+ * @retval None
+ */
+void lcom_BinarySend(const char *cmd, int size);
+
+/**
  * @brief  Checks if a new character has been received on com port
  * @param  None
  * @retval Returns SET if new character has been received on com port, RESET otherwise
@@ -144,6 +151,11 @@ void lcom_IRQHandler(void);
 #define LPRINTF(...)
 #endif
 
+#if 1
+#define LBPRINTF(Arg1, Arg2)     lcom_BinarySend(Arg1, Arg2)
+#else
+#define LBPRINTF(...)
+#endif
 
 #ifdef __cplusplus
 }

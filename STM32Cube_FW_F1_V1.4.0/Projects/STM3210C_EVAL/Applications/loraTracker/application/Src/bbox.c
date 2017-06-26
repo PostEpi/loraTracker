@@ -87,7 +87,7 @@ static bool parsedata()
 		// parse time
 		res_cManufacture = digit2dec(words[1][0]) * 10 + digit2dec(words[1][1]);
 		res_cEvent = digit2dec(words[2][0]) * 10 + digit2dec(words[2][1]);
-        res_sBattery = (short)(string2float(words[3]) * 10) ;
+        res_sBattery = (short)(string2float(words[3]) * 5) ;
 		// data ready
 		bFlagDataReady = true;
 
@@ -104,9 +104,9 @@ static bool parsedata()
 
 }
 
-bool parsebbox(char *pdata, int psize)
+bool parsebbox(const char *pdata, int psize)
 {
-    char *pd = pdata;
+    const char *pd = pdata;
     int bufsize = psize;
     char c;
 
@@ -203,7 +203,7 @@ int getUserMessage(char *buf, int size)
 	int max = 0;
 	if(buf != NULL && size > 0)
 	{
-		max = strlen(usermsg);//BBOX_MESSAGE_SIZE - 18; // we can only send the user message by 22 bytes over the lora network.  
+		max = 22; // iot GPS specification 
 		if(max > size) max = size;
 		memcpy(buf, usermsg, max); 
 	}

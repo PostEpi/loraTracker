@@ -983,6 +983,9 @@
       <file>
         <name>$PROJ_DIR$\..\Src\vdb.c</name>
       </file>
+      <file>
+        <name>$PROJ_DIR$\..\Src\wisol.c</name>
+      </file>
     </group>
   </group>
   <group>

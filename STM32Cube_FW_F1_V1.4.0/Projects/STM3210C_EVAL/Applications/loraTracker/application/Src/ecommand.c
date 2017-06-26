@@ -79,7 +79,7 @@
  * @param  The command
  * @retval None
  */
-static void parse_cmd(const char *cmd);
+static bool parse_cmd(const char *cmd, int size);
 
 /* Exported functions ---------------------------------------------------------*/
 
@@ -113,18 +113,17 @@ void ECMD_Process(void)
         {
             if (i != 0)
             {
-                berdp = strstr((const char *)command, (const char*)BBOX_STX_BERDP);
-                burdp = strstr((const char *)command, (const char*)BBOX_STR_BURDP);
-                if(i < BBOX_MESSAGE_SIZE && (berdp != NULL || burdp != NULL)) 
-                {
-                    EPRINTF("ok\r\n");
-                    
-                    // system reset test
-                    BSP_Download_Reset();
 
-                    if (updateDB(DEM, command, i+1, false) != RQUEUE_OK)
+                if(i < BBOX_MESSAGE_SIZE) 
+                {
+                    if(parse_cmd(command, i))
                     {
-                        DEBUG(ZONE_ERROR, ("ECMD_Process : Update is failed to DEM @@@@\r\n"));
+                        EPRINTF("ok\r\n");
+                        
+                        if (updateDB(DEM, command, i+1, false) != RQUEUE_OK)
+                        {
+                            DEBUG(ZONE_ERROR, ("ECMD_Process : Update is failed to DEM @@@@\r\n"));
+                        }
                     }
                 }
                 i = 0;
@@ -153,5 +152,47 @@ void ECMD_Process(void)
 }
 
 /* Private functions ---------------------------------------------------------*/
+static bool parse_cmd(const char *cmd, int size)
+{
+    bool ret = false;
+    bool bCmdValided = false;
+    bool bReset = false;
 
+    if(strstr((const char *)cmd, (const char *)BBOX_STX_BERDP) != NULL)
+    {
+        bCmdValided = true;
+    }
+    else if(strstr((const char *)cmd, (const char *)BBOX_STR_BURDP) != NULL)
+    {
+        bCmdValided = true;
+    }
+    else if(strstr((const char *)cmd, (const char *)BBOX_STX_BDRDP) != NULL)
+    {
+        bCmdValided = true;
+        bReset = true;
+    }
+
+    if(bCmdValided)
+    {
+        parsebbox(cmd, size);
+        if(isbboxready())
+        {
+            DEBUG(ZONE_FUNCTION, ("parse_cmd : %s\r\n", cmd));
+            if(bReset) 
+            {
+                DEBUG(ZONE_FUNCTION, ("   *** Let's go to the downloading process ***\r\n"));
+    
+                // system reset test
+                BSP_Download_Reset();
+            }
+            ret = true;
+        }
+        else 
+        {
+            DEBUG(ZONE_ERROR, ("parse_cmd : Invalid value @@@@ %s\r\n", cmd));
+        }
+    }
+
+    return ret;
+}
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

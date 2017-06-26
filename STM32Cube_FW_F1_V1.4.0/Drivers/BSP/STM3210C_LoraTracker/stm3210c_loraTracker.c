@@ -127,6 +127,7 @@ const uint16_t LED_PIN[LEDn] = {LED1_PIN,
                                 LED2_PIN};
 #endif
 
+#if 0
 /**
  * @brief BUTTON variables
  */
@@ -141,7 +142,7 @@ const uint16_t BUTTON_PIN[BUTTONn] = {WAKEUP_BUTTON_PIN,
 const uint16_t BUTTON_IRQn[BUTTONn] = {WAKEUP_BUTTON_EXTI_IRQn,
                                        TAMPER_BUTTON_EXTI_IRQn,
                                        KEY_BUTTON_EXTI_IRQn};
-
+#endif
 
 #define WDI_HOLD_PIN                    GPIO_PIN_0
 #define WDI_HOLD_GPIO_PORT		          GPIOC
@@ -518,9 +519,9 @@ void BSP_Lora_HW_Reset(void)
 
 void BSP_Lora_Wakeup(void)
 {
-    BSP_OUTGPIO_Low(OUTPUT_WKUP);
-    HAL_Delay(1);
     BSP_OUTGPIO_High(OUTPUT_WKUP);
+    HAL_Delay(1);
+    BSP_OUTGPIO_Low(OUTPUT_WKUP);
 }
 
 
@@ -539,7 +540,6 @@ void BSP_OUTGPIO_init(Output_TypeDef Outpin, GPIO_PinState initialstatus)
 
     /* Configure Push Button pin as input */
     gpioinitstruct.Pin = OUTPUT_PIN[Outpin];
-    gpioinitstruct.Pull = GPIO_NOPULL;
     gpioinitstruct.Speed = GPIO_SPEED_FREQ_HIGH;
     gpioinitstruct.Mode = GPIO_MODE_OUTPUT_PP;
     HAL_GPIO_Init(OUTPUT_PORT[Outpin], &gpioinitstruct);
@@ -557,6 +557,7 @@ void BSP_OUTGPIO_High(Output_TypeDef Outpin)
     HAL_GPIO_WritePin(OUTPUT_PORT[Outpin], OUTPUT_PIN[Outpin], GPIO_PIN_SET);
 }
 
+#if 0
     /**
   * @brief  Configures push button GPIO and EXTI Line.
   * @param  Button: Button to be configured.
@@ -620,8 +621,10 @@ uint32_t BSP_PB_GetState(Button_TypeDef Button)
 {
     return HAL_GPIO_ReadPin(BUTTON_PORT[Button], BUTTON_PIN[Button]);
 }
+#endif
 
 #ifdef HAL_I2C_MODULE_ENABLED
+#if 0
 /**
   * @brief  Configures joystick GPIO and EXTI modes.
   * @param  Joy_Mode: Button mode.
@@ -696,6 +699,8 @@ JOYState_TypeDef BSP_JOY_GetState(void)
         return (JOYState_TypeDef)JOY_NONE;
     }
 }
+#endif
+
 #endif /*HAL_I2C_MODULE_ENABLED*/
 
 #ifdef HAL_UART_MODULE_ENABLED

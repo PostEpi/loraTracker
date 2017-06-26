@@ -114,6 +114,7 @@ typedef enum
 } Output_TypeDef;
 #endif
 
+#if 0
 /**
  * @brief BUTTON Types Definition
  */
@@ -151,6 +152,8 @@ typedef enum
   JOY_MODE_EXTI = 1
 
 }JOYMode_TypeDef;
+
+#endif
 
 /**
  * @brief COM Types Definition
@@ -323,6 +326,7 @@ typedef enum
 
 #endif
 
+#if 0
 
 /** @addtogroup STM3210C_EVAL_BUTTON
   * @{
@@ -385,6 +389,7 @@ typedef enum
 #define MII_INT_PIN                  (IO2_PIN_0) /* IO_Expander_2 */ /* Output */
 #define VBAT_DIV_PIN                 (IO1_PIN_0) /* IO_Expander_1 */ /* Output */
 
+#endif
 /**
   * @}
   */ 
@@ -579,7 +584,7 @@ typedef enum
 #define COUNTOF(__BUFFER__)   (sizeof(__BUFFER__) / sizeof(*(__BUFFER__)))
 /* Exported functions ------------------------------------------------------- */
 
-
+#if 0
 /**
   * @}
   */ 
@@ -605,8 +610,8 @@ typedef enum
 
 /*The Slave ADdress (SAD) associated to the LIS302DL is 001110xb. SDO pad can be used 
 to modify less significant bit of the device address. If SDO pad is connected to voltage 
-supply LSb is �?�?(address 0011101b) else if SDO pad is connected to ground LSb value is 
-�?�?(address 0011100b).*/
+supply LSb is ï¿?ï¿?(address 0011101b) else if SDO pad is connected to ground LSb value is 
+ï¿?ï¿?(address 0011100b).*/
 #define L1S302DL_I2C_ADDRESS                  0x38
 
 
@@ -722,7 +727,8 @@ supply LSb is �?�?(address 0011101b) else if SDO pad is connected to ground 
   * @brief  AUDIO I2C Interface pins
   */
 #define AUDIO_I2C_ADDRESS                     0x94
-  
+
+#endif  
 /**
   * @}
   */
@@ -752,8 +758,12 @@ void                    BSP_HW_Reset(void);
 void                    BSP_GPS_HW_Reset(void);
 void                    BSP_Lora_HW_Reset(void);
 void                    BSP_Lora_Wakeup(void);
+
+#if 0
 void                    BSP_PB_Init(Button_TypeDef Button, ButtonMode_TypeDef Button_Mode);
 uint32_t                BSP_PB_GetState(Button_TypeDef Button);
+#endif
+
 #ifdef HAL_UART_MODULE_ENABLED
 void                    BSP_COM_Init(COM_TypeDef COM, UART_HandleTypeDef* huart);
 #endif /* HAL_UART_MODULE_ENABLED */
