@@ -18,6 +18,7 @@ bool    parsebbox(const char *pdata, int psize);
 int     digit2dec(char digit);
 float   string2float(char* s);
 bool	isbboxready();
+int     getUserMessage(char *buf, int size);
 char	getbboxManufacture();
 char	getbboxEvent();
 

@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include "iotgps.h"
 #include "circledistance.h"
+#include "bbox.h"
 #include "nmea.h"
 #include "debug.h"
 

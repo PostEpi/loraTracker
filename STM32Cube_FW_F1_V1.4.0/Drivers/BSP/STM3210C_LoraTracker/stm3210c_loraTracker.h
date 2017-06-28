@@ -610,8 +610,8 @@ typedef enum
 
 /*The Slave ADdress (SAD) associated to the LIS302DL is 001110xb. SDO pad can be used 
 to modify less significant bit of the device address. If SDO pad is connected to voltage 
-supply LSb is ï¿?ï¿?(address 0011101b) else if SDO pad is connected to ground LSb value is 
-ï¿?ï¿?(address 0011100b).*/
+supply LSb is �?�?(address 0011101b) else if SDO pad is connected to ground LSb value is 
+�?�?(address 0011100b).*/
 #define L1S302DL_I2C_ADDRESS                  0x38
 
 
@@ -758,6 +758,7 @@ void                    BSP_HW_Reset(void);
 void                    BSP_GPS_HW_Reset(void);
 void                    BSP_Lora_HW_Reset(void);
 void                    BSP_Lora_Wakeup(void);
+void                    BSP_Delay_HW_Reset(void);
 
 #if 0
 void                    BSP_PB_Init(Button_TypeDef Button, ButtonMode_TypeDef Button_Mode);

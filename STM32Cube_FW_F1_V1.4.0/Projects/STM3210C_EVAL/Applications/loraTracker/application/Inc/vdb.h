@@ -17,7 +17,7 @@ typedef enum
   DB_MAX_SIZE
 } DB_TypeDef;
 
-RQueue_StatusTypeDef updateDB(DB_TypeDef db, char *data, int size, bool mustack);
+RQueue_StatusTypeDef updateDB(DB_TypeDef db, char *data, int size, int needack);
 RQueue_StatusTypeDef deleteDB(DB_TypeDef db, element *item);
 RQueue_StatusTypeDef selectDB(DB_TypeDef db, element *item);
 bool isEmptydDB(DB_TypeDef db);

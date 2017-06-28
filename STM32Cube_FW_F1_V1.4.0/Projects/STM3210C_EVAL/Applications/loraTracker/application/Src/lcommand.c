@@ -47,7 +47,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include <stdlib.h>
 #include "stm32f1xx.h"
-//#include "at.h"
+#include <string.h>
 #include "lcommand.h"
 #include "vdb.h"
 #include "demd.h"
@@ -80,22 +80,6 @@ struct ATCommand_s {
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-
-/**
- * @brief  Array corresponding to the description of each possible AT Error
- */
-static const char *const ATError_description[] =
-    {
-        "\r\nOK\r\n",                     /* AT_OK */
-        "\r\nAT_ERROR\r\n",               /* AT_ERROR */
-        "\r\nAT_PARAM_ERROR\r\n",         /* AT_PARAM_ERROR */
-        "\r\nAT_BUSY_ERROR\r\n",          /* AT_BUSY_ERROR */
-        "\r\nAT_TEST_PARAM_OVERFLOW\r\n", /* AT_TEST_PARAM_OVERFLOW */
-        "\r\nAT_NO_NETWORK_JOINED\r\n",   /* AT_NO_NET_JOINED */
-        "\r\nAT_RX_ERROR\r\n",            /* AT_RX_ERROR */
-        "\r\nerror unknown\r\n",          /* AT_MAX */
-};
-
 /* Private function prototypes -----------------------------------------------*/
 
 /**
@@ -109,7 +93,6 @@ static const char *const ATError_description[] =
  * @retval None
  */
 static void writeCom(const char *cmd, int size);
-static void parse_cmd(const char *cmd);
 
 /* Exported functions ---------------------------------------------------------*/
 
@@ -148,7 +131,7 @@ void LCMD_Process(void)
                     deleteDB(db, &item);
                 }
 
-                DEBUG(ZONE_FUNCTION, ("LCMD_Process : %s", command));
+                DEBUG(ZONE_FUNCTION|ZONE_LORA, ("%s", command));
                 i = 0;
                 memset((void*)command, 0, CMD_SIZE);
             }
@@ -166,11 +149,14 @@ void LCMD_Process(void)
         }
     }
     
-    if (!isEmptydDB(db) && selectDB(db, &item) == RQUEUE_OK)
+    if(!isInProcess())
     {
-        DEBUG(ZONE_FUNCTION, ("LCMD_Process : %d, %d, %s\r\n", item.size, item.retcount, item.edata ))
-        //LPRINTF("LRW30otaa\r\n");
-        writeLRW(item.edata, item.size);
+        if (!isEmptydDB(db) && selectDB(db, &item) == RQUEUE_OK)
+        {
+            DEBUG(ZONE_FUNCTION, ("LCMD_Process : writeLRW %d, %d, %s\r\n", item.size, item.retcount, item.edata ))
+            //LPRINTF("LRW30otaa\r\n");
+            writeLRW(item.edata, item.size, item.retcount);
+        }
     }
 }
 

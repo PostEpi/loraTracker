@@ -417,7 +417,7 @@ void BSP_Download_Reset(void)
 {
     __IO uint32_t FLASHStatus = FLASHIF_OK;
     uint32_t Address = SP_FLASH_START_ADDRESS;
-    int signature = SIGNAUTURE_EMERGENCE;
+    uint32_t signature = SIGNAUTURE_EMERGENCE;
     int retry = 3;
     
     /* Unlock the Program memory */
@@ -503,11 +503,20 @@ void BSP_Booting_Reset(void)
     }
 }
 
+void BSP_HW_Reset(void)
+{
+    BSP_OUTGPIO_Low(OUTPUT_NRST);
+    HAL_NVIC_SystemReset();  
+}
+
 void BSP_GPS_HW_Reset(void)
 {
+#if 0    
     BSP_OUTGPIO_High(OUTPUT_PRST);
     HAL_Delay(10);
     BSP_OUTGPIO_Low(OUTPUT_PRST);
+#endif  
+    HAL_NVIC_SystemReset();  
 }
 
 void BSP_Lora_HW_Reset(void)
@@ -522,6 +531,12 @@ void BSP_Lora_Wakeup(void)
     BSP_OUTGPIO_High(OUTPUT_WKUP);
     HAL_Delay(1);
     BSP_OUTGPIO_Low(OUTPUT_WKUP);
+}
+
+void BSP_Delay_HW_Reset(void)
+{
+    HAL_Delay(1000);
+    BSP_HW_Reset();
 }
 
 

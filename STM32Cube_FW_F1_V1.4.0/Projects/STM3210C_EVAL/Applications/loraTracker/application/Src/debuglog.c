@@ -1,5 +1,5 @@
 /******************************************************************************
-  * @file	 ecom.c
+  * @file	 lcom.c
   * @author  MCD Application Team
   * @version V1.1.0
   * @date	 27-February-2017
@@ -45,8 +45,7 @@
   */
 
 #include <stdarg.h>
-#include "ecom.h"
-#include "loratracker.h"
+#include "debuglog.h"
 #include "utilities.h"
 #include "tiny_vsnprintf.h"
 #include "stm3210c_loraTracker.h"
@@ -61,13 +60,12 @@ static UART_HandleTypeDef UartHandle;
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* based on UART_HandleTypeDef */
-
-#define ECOM_BUFFER_BYTE_SIZE   256
+#define DEBUGLOG_BUFFER_BYTE_SIZE   256
 
 static struct
 {
-    char buffTx[ECOM_BUFFER_BYTE_SIZE];     /**< buffer to transmit */
-    char buffRx[ECOM_BUFFER_BYTE_SIZE];     /**< Circular buffer of received chars */
+    char buffTx[DEBUGLOG_BUFFER_BYTE_SIZE];     /**< buffer to transmit */
+    char buffRx[DEBUGLOG_BUFFER_BYTE_SIZE];     /**< Circular buffer of received chars */
     int rx_idx_free;      /**< 1st free index in BuffRx */
     int rx_idx_toread;    /**< next char to read in buffRx, when not rx_idx_free */
     HAL_LockTypeDef Lock; /**< Locking object */
@@ -92,9 +90,10 @@ static int buffer_transmit(int start, int len);
   */
 static void receive(char rx);
 
+
 /* Functions Definition ------------------------------------------------------*/
 
-void ecom_Init(void)
+void debuglog_Init(void)
 {
 
     /*## Configure the UART peripheral ######################################*/
@@ -106,23 +105,8 @@ void ecom_Init(void)
 	   - BaudRate = 921600 baud
 	   - Hardware flow control disabled (RTS and CTS signals) */
 
-
-	// GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-
-	// __GPS_POWER_EN_CLK_ENABLE();
-
-	// GPIO_InitStruct.Pin 	  = GPS_POWER_EN_PIN;
-	// GPIO_InitStruct.Mode	  = GPIO_MODE_OUTPUT_PP;
-	// GPIO_InitStruct.Pull	  = GPIO_NOPULL;
-	// GPIO_InitStruct.Speed	  = GPIO_SPEED_FREQ_HIGH;
-	// HAL_GPIO_Init(GPS_POWER_EN_GPIO_PORT, &GPIO_InitStruct);
-    // // set High
-	// HAL_GPIO_WritePin(GPS_POWER_EN_GPIO_PORT ,GPS_POWER_EN_PIN, GPIO_PIN_SET);
-
-
-    UartHandle.Instance = EXT_USARTx;
-    UartHandle.Init.BaudRate = 9600;
+    UartHandle.Instance = LOG_USARTx;
+    UartHandle.Init.BaudRate = 115200;
     UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
     UartHandle.Init.StopBits = UART_STOPBITS_1;
     UartHandle.Init.Parity = UART_PARITY_NONE;
@@ -134,13 +118,13 @@ void ecom_Init(void)
         Error_Handler();
     }
 
-    ecom_IoInit();
+    debuglog_IoInit();
 
     uart_context.gState = HAL_UART_STATE_READY;
     uart_context.RxState = HAL_UART_STATE_READY;
 }
 
-void ecom_DeInit(void)
+void debuglog_DeInit(void)
 {
     if (HAL_UART_DeInit(&UartHandle) != HAL_OK)
     {
@@ -148,7 +132,7 @@ void ecom_DeInit(void)
     }
 }
 
-void ecom_Send(const char *format, ...)
+void debuglog_Send(const char *format, ...)
 {
     va_list args;
     static __IO uint16_t len = 0;
@@ -162,11 +146,11 @@ void ecom_Send(const char *format, ...)
     DISABLE_IRQ();
     if (len != 0)
     {
-        if (len != ECOM_BUFFER_BYTE_SIZE)
+        if (len != DEBUGLOG_BUFFER_BYTE_SIZE)
         {
             current_len = len; /* use current_len instead of volatile len in below computation */
             len = current_len + tiny_vsnprintf_like(uart_context.buffTx + current_len,
-                                                    ECOM_BUFFER_BYTE_SIZE - current_len, format, args);
+                                                    DEBUGLOG_BUFFER_BYTE_SIZE - current_len, format, args);
         }
         RESTORE_PRIMASK();
         va_end(args);
@@ -174,7 +158,7 @@ void ecom_Send(const char *format, ...)
     }
     else
     {
-        len = tiny_vsnprintf_like(uart_context.buffTx, ECOM_BUFFER_BYTE_SIZE, format, args);
+        len = tiny_vsnprintf_like(uart_context.buffTx, DEBUGLOG_BUFFER_BYTE_SIZE, format, args);
     }
 
     current_len = len;
@@ -185,7 +169,6 @@ void ecom_Send(const char *format, ...)
     do
     {
         stop = buffer_transmit(start, current_len);
-
         {
             BACKUP_PRIMASK();
             DISABLE_IRQ();
@@ -206,7 +189,7 @@ void ecom_Send(const char *format, ...)
     va_end(args);
 }
 
-HAL_StatusTypeDef ecom_ReceiveInit(void)
+HAL_StatusTypeDef debuglog_ReceiveInit(void)
 {
     if (uart_context.RxState != HAL_UART_STATE_READY)
     {
@@ -230,18 +213,18 @@ HAL_StatusTypeDef ecom_ReceiveInit(void)
     return HAL_OK;
 }
 
-void ecom_IoInit(void)
+void debuglog_IoInit(void)
 {
 
     /* Enable the UART Data Register not empty Interrupt */
     __HAL_UART_ENABLE_IT(&UartHandle, UART_IT_RXNE);
 }
 
-void ecom_IoDeInit(void)
+void debuglog_IoDeInit(void)
 {
 }
 
-FlagStatus eIsNewCharReceived(void)
+FlagStatus IsdebugReceived(void)
 {
     FlagStatus status;
 
@@ -249,14 +232,12 @@ FlagStatus eIsNewCharReceived(void)
     DISABLE_IRQ();
 
     status = ((uart_context.rx_idx_toread == uart_context.rx_idx_free) ? RESET : SET);
-    if(status == SET)
-        DEBUG(ZONE_TRACE, ("~~~~~~~~~~ toread=%d free=%d\r\n", uart_context.rx_idx_toread, uart_context.rx_idx_free));
 
     RESTORE_PRIMASK();
     return status;
 }
 
-uint8_t eGetNewChar(void)
+uint8_t getdebugChar(void)
 {
     uint8_t NewChar;
 
@@ -264,16 +245,17 @@ uint8_t eGetNewChar(void)
     DISABLE_IRQ();
 
     NewChar = uart_context.buffRx[uart_context.rx_idx_toread];
-    uart_context.rx_idx_toread = (uart_context.rx_idx_toread + 1) % ECOM_BUFFER_BYTE_SIZE;
+    uart_context.rx_idx_toread = (uart_context.rx_idx_toread + 1) % DEBUGLOG_BUFFER_BYTE_SIZE;
 
     RESTORE_PRIMASK();
     return NewChar;
 }
 
-void ecom_IRQHandler(void)
+void debuglog_IRQHandler(void)
 {
     /* USER CODE BEGIN USART2_IRQn 0 */
     UART_HandleTypeDef *huart = &UartHandle;
+    char ch;
     uint32_t tmp_flag = 0, tmp_it_source = 0;
 
     tmp_flag = __HAL_UART_GET_FLAG(huart, UART_FLAG_RXNE);
@@ -289,7 +271,7 @@ void ecom_IRQHandler(void)
     if ((tmp_flag != RESET) && (tmp_it_source != RESET))
     {
             //HAL_UART_ErrorCallback(huart);
-        DEBUG(ZONE_ERROR, ("EUART ERROR = %x\r\n", huart->ErrorCode));
+        DEBUG(ZONE_ERROR, ("LUART ERROR = %x\r\n", huart->ErrorCode));
         
         /* Clear all the error flag at once */
         __HAL_UART_CLEAR_PEFLAG(huart);
@@ -297,6 +279,7 @@ void ecom_IRQHandler(void)
         /* Set the UART state ready to be able to start again the process */
     	huart->State = HAL_UART_STATE_READY;
     }
+
 }
 
 /* Private functions Definition ------------------------------------------------------*/
@@ -305,13 +288,10 @@ static int buffer_transmit(int start, int len)
 {
     int i;
 
-    // common.c in IAP_Main
     if (UartHandle.State == HAL_UART_STATE_TIMEOUT)
     {
         UartHandle.State = HAL_UART_STATE_READY;
     }
-
-    DEBUG(ZONE_TRACE, ("ECOM: buffer_transmit : %s\r\n", &uart_context.buffTx[start]));
 
     for (i = start; i < len; i++)
     {
@@ -326,7 +306,7 @@ static void receive(char rx)
 
     /** no need to clear the RXNE flag because it is auto cleared by reading the data*/
     uart_context.buffRx[uart_context.rx_idx_free] = rx;
-    next_free = (uart_context.rx_idx_free + 1) % ECOM_BUFFER_BYTE_SIZE;
+    next_free = (uart_context.rx_idx_free + 1) % DEBUGLOG_BUFFER_BYTE_SIZE;
     if (next_free != uart_context.rx_idx_toread)
     {
         /* this is ok to read as there is no buffer overflow in input */
@@ -338,7 +318,6 @@ static void receive(char rx)
         //uart_context.buffRx[uart_context.rx_idx_free] = '\r';
         uart_context.rx_idx_toread = 0;
         uart_context.rx_idx_free = 0;
-        DEBUG(ZONE_ERROR , ("euart_context.buffRx buffer overflow \r\n"));
     }
 }
 

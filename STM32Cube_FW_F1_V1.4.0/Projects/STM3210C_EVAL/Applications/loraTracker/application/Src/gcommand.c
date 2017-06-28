@@ -49,7 +49,7 @@
 #include <string.h>
 #include <math.h>
 #include "stm32f1xx.h"
-//#include "at.h"
+#include "nmea.h"
 #include "gcommand.h"
 #include "vdb.h"
 #include "debug.h"
@@ -129,16 +129,16 @@ void GCMD_Process(void)
         command[i] = ch;
         if(isdataready()) 
         {
-            DEBUG(ZONE_TRACE,("%d:%d:%d %d-%d-%d\r\n", getHour(), getMinute(), getSecond(),  getYear(), getMonth(), getDay()))
-            DEBUG(ZONE_TRACE,("latitude=%f, longitude=%f\r\n", getLatitude(), getLongitude()));
-            DEBUG(ZONE_TRACE,("satelites=%d altitude=%d\r\n", getSatellites(), getAltitude())); 
-            DEBUG(ZONE_TRACE,("speed=%d bearing=%d\r\n", getSpeed(), getBearing()));
+            DEBUG(ZONE_GPS, ("%d:%d:%d %d-%d-%d\r\n", getHour(), getMinute(), getSecond(),  getYear(), getMonth(), getDay()))
+            DEBUG(ZONE_GPS, ("latitude=%f, longitude=%f\r\n", getLatitude(), getLongitude()));
+            DEBUG(ZONE_GPS, ("satelites=%d altitude=%d\r\n", getSatellites(), getAltitude())); 
+            DEBUG(ZONE_GPS, ("speed=%d bearing=%d\r\n", getSpeed(), getBearing()));
         }
         if (command[i] == '\n')
         {
             if (i != 0)
             {
-                if (updateDB(GPS, command, i+1, false) != RQUEUE_OK)
+                if (updateDB(GPS, command, i+1, 0) != RQUEUE_OK)
                 {
                     DEBUG(ZONE_ERROR, ("GCMD_Process : Update is failed to GPS\r\n"));
                 }
@@ -154,7 +154,7 @@ void GCMD_Process(void)
                         if(gcom_report_request) 
                         {
                             gcom_report_request = false;
-                            if(updateDB(DEM, command, i, false) != RQUEUE_OK)
+                            if(updateDB(DEM, command, i, 0) != RQUEUE_OK)
                             {
                                 DEBUG(ZONE_ERROR, ("GCMD_Process : Update is failed to DEM\r\n"));
                             }

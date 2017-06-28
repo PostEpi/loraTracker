@@ -7,13 +7,14 @@
 #include "timtimer.h"
 #include "timeServer.h"
 #include "gcommand.h"
+#include "nmea.h"
 #include "bbox.h"
 #include "iotgps.h"
 #include "easyflash.h"
 
 #define DEMD_PROCESS_LOG_SIZE       16
 #define SETTING_PERIOD_REPORT_CYCLE "period_report_cycle"
-#define MIN1                       60000
+#define MIN1                        60000
 
 
 static TimerEvent_t reportToserverTimer;
@@ -31,7 +32,7 @@ static int  getReportTime(int value);
 static void OnReportToServerTimer(void);
 static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize);
 static int  getSecFromDateAndTime();
-static void itohex(char *buf, int size, int value);
+//static void itohex(char *buf, int size, int value);
 static bool storeReportCycle(int value);
 
 
@@ -54,7 +55,6 @@ void DEMD_Init()
 
 void DEMD_Process()
 {
-    char *cmd;
     element item;
     static char iotMessage[DEMD_IOT_MESSAGE_SIZE];
     static int iotSize = DEMD_IOT_MESSAGE_SIZE;
@@ -70,11 +70,13 @@ void DEMD_Process()
         {
             // it will send iotMessage to Lora Port. So Lora Port has sent it through Lora network.
             // if sending it is successful, position of iotMessage is stored to flash.
-            if(updateDB(LOR, iotMessage, iotSize, true) != RQUEUE_OK)
+            if(updateDB(LOR, iotMessage, iotSize, 10) != RQUEUE_OK)
             {
                 DEBUG(ZONE_ERROR, ("DEMD_Process : Update is failed to LOR @@@@ \r\n"));
                 return;
             }
+
+            DEBUG(ZONE_FUNCTION, ("DEMD_Process : push datas. %s %d\r\n\r\n", item.edata, item.size));
         }
         else 
         {
@@ -210,7 +212,8 @@ static void OnReportToServerTimer(void)
 
 static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
 {
-
+    int count;
+    char *pstr;
     static char commandbbox[BBOX_MESSAGE_SIZE];
 
     // parser data and make new message.
@@ -222,7 +225,7 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
         } 
         else
         { 
-            DEBUG(ZONE_TRACE, ("parseMessage : BBox Message be arrrived \r\n"));
+            DEBUG(ZONE_TRACE, ("parseMessage : BBox Message received \r\n"));
 
             // to request data from the gps process.
             reportType = IOT_TYPE_EVENT;
@@ -281,11 +284,16 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
             reportType = IOT_TYPE_NONE;
             return false;
         }
-
-        fusedata(pdata, psize);
+        
+        pstr = pdata;
+        count = psize;
+        do
+        {
+            fusedata(*pstr++);
+        } while(count-- > 0);
+        
         if(isbboxready() && isdataready()) 
         {
-            int i = 0;
             reportType = IOT_TYPE_NONE;
 
             IotEvent_Typedef iotE;
@@ -314,7 +322,13 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
     }
     else 
     {
-        fusedata(pdata, psize);
+        pstr = pdata;
+        count = psize;
+        do
+        {
+            fusedata(*pstr++);
+        } while(count-- > 0);
+        
         if(isdataready())
         {
             IotGPS_Typedef iot;

@@ -48,7 +48,8 @@ extern int DebugFlag;
 #define ZONE_XMIT       DEBUGZONE(6)
 #define ZONE_SEND       ZONE_XMIT
 #define ZONE_BUFFER		DEBUGZONE(7)
-#define ZONE_HALT		DEBUGZONE(8)
+#define ZONE_GPS		DEBUGZONE(8)
+#define ZONE_LORA		DEBUGZONE(9)
 
 /** print debug message only if debug message type is enabled...
  *  AND is of correct type AND is at least LWIP_DBG_LEVEL

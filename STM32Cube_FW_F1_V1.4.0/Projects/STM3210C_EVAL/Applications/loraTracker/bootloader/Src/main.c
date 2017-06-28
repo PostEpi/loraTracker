@@ -124,7 +124,21 @@ int main(void)
         /* Execute the Download driver in order to reprogram the Flash */
         EXT_Init();
 
-#if 1
+        // gpio init    
+        BSP_OUTGPIO_init(OUTPUT_WKUP, GPIO_PIN_SET);
+        HAL_Delay(1);
+        BSP_OUTGPIO_Low(OUTPUT_WKUP);
+        
+        BSP_OUTGPIO_init(OUTPUT_NRST, GPIO_PIN_SET);
+        BSP_OUTGPIO_init(OUTPUT_PRST, GPIO_PIN_RESET);
+
+        /* Initialize BSP Led for LED_RED */
+        BSP_LED_Init(LED_RED);
+        BSP_LED_Init(LED_GREEN);
+
+        //BSP_LED_Toggle(LED_RED);
+        BSP_LED_On(LED_GREEN);
+#if 0
         // sample code for externel uart (blackbox)
         HAL_UART_Transmit(&ExUartHandle, msg, sizeof(msg), 0xffffffff);
         HAL_UART_Receive(&ExUartHandle, &key, 1, 0xffffffff);

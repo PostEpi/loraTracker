@@ -83,14 +83,13 @@ static RQueue_StatusTypeDef get(rqueue *mm, element *item)
 
 static void tostring(rqueue *mm)
 {
-
+	element d;
 	if (mm->count == 0)
 	{
 		LOG_PRINTF(ZONE_TRACE, ("empty\r\n"));
 		return;
 	}
 
-	element d;
 	int front = mm->front;
 	while (front != mm->rear)
 	{

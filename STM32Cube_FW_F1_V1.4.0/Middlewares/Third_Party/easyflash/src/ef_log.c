@@ -38,13 +38,13 @@
 /**
  * Sector status magic code
  * The sector status is 16-Bits after LOG_SECTOR_MAGIC at every sector header.
- * =======================
- * | header(4B) | status |
- * -----------------------
- * | 0x4546FFFF |  empty |
- * | 0x4546FFFE |  using |
- * | 0x4546FFFC |  full  |
- * =======================
+ * ======================================
+ * | header0(4B) | header1(4B) | status |
+ * --------------------------------------
+ * | 0x4546FFFF  |  0xFFFFFFFF |  empty |
+ * | 0x4546FFFE  |  0xFFFFFFFF |  using |
+ * | 0x4546FFFE  |  0x4546FFFC |  full  |
+ * ======================================
  *
  * State transition relationship: empty->using->full
  * The FULL status will change to EMPTY after sector clean.

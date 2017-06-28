@@ -205,7 +205,9 @@ void UART4_IRQHandler(void)
 #else 
 void USART1_IRQHandler(void)
 {
-    //HAL_UART_IRQHandler(&UartHandle);
+#ifdef USE_DEBUGLOG_DRVIER
+    debuglog_IRQHandler();
+#endif    
 }
 
 void USART2_IRQHandler(void)

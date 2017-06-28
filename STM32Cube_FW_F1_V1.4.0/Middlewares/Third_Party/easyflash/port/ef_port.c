@@ -141,8 +141,6 @@ EfErrCode ef_port_erase(uint32_t addr, size_t size) {
  */
 EfErrCode ef_port_write(uint32_t addr, uint32_t *buf, size_t size) {
     EfErrCode result = EF_NO_ERR;
-    size_t i;
-    uint32_t read_data;
     uint32_t flash_write_size = 0;
     
     EF_ASSERT(size % 4 == 0);
@@ -154,7 +152,7 @@ EfErrCode ef_port_write(uint32_t addr, uint32_t *buf, size_t size) {
     /* Unlock the Program memory */
     HAL_FLASH_Lock();
     
-    // 
+    // adjust a size of writing to the flash.
     flash_write_size = size / 4;
 
     if(FLASH_If_Write(addr, buf, flash_write_size) != FLASHIF_OK)

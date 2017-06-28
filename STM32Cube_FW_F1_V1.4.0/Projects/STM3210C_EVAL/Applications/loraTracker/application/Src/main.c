@@ -38,6 +38,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "rtc.h"
+#include "vdb.h"
+#include <string.h>
 
 /** @addtogroup STM32F1xx_HAL_Examples
   * @{
@@ -70,9 +73,153 @@ UART_HandleTypeDef UartHandle;
 void SystemClock_Config(void);
 void Error_Handler(void);
 
+#define USER_PROCESS_CHAR_BUFFER_SIZE   100
+#define DEBUG_RESPONSE_MAX          2
+#define DEBUG_RESPONSE_LEN          10
+static const uint8_t DEBUG_RESPONSE[DEBUG_RESPONSE_MAX][DEBUG_RESPONSE_LEN] = 
+{
+    "$$WARA$$",
+    "$$LORA$$",
+};
+static const int debugmode[10] = {0, 0x1, 0x3, 0x7, 0xf, 0x1f, 0x3f, 0x7f, 0xff, 0x1ff};
 
+
+#ifdef USE_DEBUGLOG_DRVIER
 /* Private functions ---------------------------------------------------------*/
+static void USER_Init(void)
+{
+    debuglog_Init();
+    debuglog_ReceiveInit();
+}
 
+static void USER_Process() 
+{
+	char ch;
+    bool bfound = false;
+	static int msgcount = 0;
+    static char buffer[USER_PROCESS_CHAR_BUFFER_SIZE];
+
+    while (IsdebugReceived() == SET)
+    {
+        ch = getdebugChar();
+
+		DEBUG(ZONE_FUNCTION, ("%c", ch));
+
+        buffer[msgcount++] = ch;
+        if(ch == '\n')
+        {
+            bfound = false;
+            int i, cmdLength;
+            for(i = 0; i < DEBUG_RESPONSE_MAX; i++)
+            {
+                cmdLength = strlen((const char *)DEBUG_RESPONSE[i]);
+                if(!strncmp((const char*)buffer, (const char*)DEBUG_RESPONSE[i], cmdLength))
+                {
+                    bfound = true;
+                    switch(i)
+                    {
+                    case 0:
+                        if(buffer[cmdLength] >= '0' && buffer[cmdLength] <= '9')
+                        {
+                            DebugFlag = debugmode[buffer[cmdLength] - '0'];
+                        }
+                        break;
+                    case 1:
+                        if(buffer[cmdLength] == '0' || buffer[cmdLength] == '1')
+                        {
+                            if(buffer[cmdLength] == '0')  DebugFlag = 0;
+                            else DebugFlag = 1<<9;
+                        }
+                        break;
+                    }
+                }
+            }
+            // it's passed to the lora;
+            if(bfound == false) 
+            {
+                DEBUG(ZONE_TRACE, ("USER_Process : it has been sent to lora(%s)", buffer));
+                //updateDB(LOR, buffer, msgcount, CID_TX_BYPASS_PROCESS_FOR_SKIOT);
+                int changetime = 10;
+                DEMD_IOcontrol(DEMD_REPORT_PERIOD_CHANGE, &changetime, 1, NULL, 0);
+                LBPRINTF(buffer, msgcount);
+            }
+
+            memset(buffer, 0, USER_PROCESS_CHAR_BUFFER_SIZE);
+            msgcount = 0; 
+        }
+
+        if(msgcount > USER_PROCESS_CHAR_BUFFER_SIZE)
+        { 
+            memset(buffer, 0, USER_PROCESS_CHAR_BUFFER_SIZE);
+            msgcount = 0;
+        }
+    }
+
+}
+
+#else
+static void USER_Process() 
+{
+	char ch;
+    bool bfound = false;
+	static int msgcount = 0;
+    static char buffer[USER_PROCESS_CHAR_BUFFER_SIZE];
+
+    if (HAL_UART_Receive(&UartHandle, (uint8_t *)&ch, 1, 0x10) != HAL_TIMEOUT)
+    {
+
+		DEBUG(ZONE_FUNCTION, ("%c", ch));
+
+        buffer[msgcount++] = ch;
+        if(ch == '\n')
+        {
+            bfound = false;
+            int i, cmdLength;
+            for(i = 0; i < DEBUG_RESPONSE_MAX; i++)
+            {
+                cmdLength = strlen((const char *)DEBUG_RESPONSE[i]);
+                if(!strncmp((const char*)buffer, (const char*)DEBUG_RESPONSE[i], cmdLength))
+                {
+                    bfound = true;
+                    switch(i)
+                    {
+                    case 0:
+                        if(buffer[cmdLength] >= '0' && buffer[cmdLength] <= '9')
+                        {
+                            DebugFlag = debugmode[buffer[cmdLength] - '0'];
+                        }
+                        break;
+                    case 1:
+                        if(buffer[cmdLength] == '0' || buffer[cmdLength] == '1')
+                        {
+                            if(buffer[cmdLength] == '0')  DebugFlag = 0;
+                            else DebugFlag = 1<<9;
+                        }
+                        break;
+                    }
+                }
+            }
+            // it's passed to the lora;
+            if(bfound == false) 
+            {
+                DEBUG(ZONE_TRACE, ("USER_Process : it has been sent to lora(%s)", buffer));
+                //updateDB(LOR, buffer, msgcount, 0xff);
+                LBPRINTF(buffer, msgcount);
+            }
+
+            memset(buffer, 0, USER_PROCESS_CHAR_BUFFER_SIZE);
+            msgcount = 0; 
+        }
+
+        if(msgcount > USER_PROCESS_CHAR_BUFFER_SIZE)
+        { 
+            memset(buffer, 0, USER_PROCESS_CHAR_BUFFER_SIZE);
+            msgcount = 0;
+        }
+    }
+
+}
+#endif
 
 /**
   * @brief  Main program
@@ -119,6 +266,7 @@ int main(void)
     BSP_OUTGPIO_init(OUTPUT_PRST, GPIO_PIN_RESET);
 #endif
 
+#ifndef USE_DEBUGLOG_DRVIER
     /*##-1- Configure the UART peripheral ######################################*/
     /* Put the USART peripheral in the Asynchronous mode (UART Mode) */
     /* UART configured as follows:
@@ -140,7 +288,11 @@ int main(void)
     {
         /* Initialization Error */
         Error_Handler();
+
     }
+#else
+    USER_Init();
+#endif
 
     /* Output a message on Hyperterminal using printf function */
     printf("\n\r *** Lora Board Start ***\n\r\n\r");
@@ -159,7 +311,7 @@ int main(void)
     /* Infinite loop */
     while (1)
     {
-        //USER_Process();
+        USER_Process();
 		ECMD_Process();
 		LCMD_Process();
 		GCMD_Process();
@@ -174,9 +326,14 @@ int main(void)
   */
 PUTCHAR_PROTOTYPE
 {
+#ifndef USE_DEBUGLOG_DRVIER
+
     /* Place your implementation of fputc here */
     /* e.g. write a character to the USART2 and Loop until the end of transmission */
     HAL_UART_Transmit(&UartHandle, (uint8_t *)&ch, 1, 0xFFFF);
+#else 
+    DLPRINTF((const char *)&ch);    
+#endif
 
     return ch;
 }

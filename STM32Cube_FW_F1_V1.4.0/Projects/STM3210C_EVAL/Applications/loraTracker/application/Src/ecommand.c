@@ -94,9 +94,7 @@ void ECMD_Process(void)
 {
     static char command[CMD_SIZE];
     static unsigned i = 0;
-    char *berdp = NULL;
-    char *burdp = NULL;
-    
+
     element item;
     DB_TypeDef db = GPS;
 
@@ -120,7 +118,7 @@ void ECMD_Process(void)
                     {
                         EPRINTF("ok\r\n");
                         
-                        if (updateDB(DEM, command, i+1, false) != RQUEUE_OK)
+                        if (updateDB(DEM, command, i+1, 0) != RQUEUE_OK)
                         {
                             DEBUG(ZONE_ERROR, ("ECMD_Process : Update is failed to DEM @@@@\r\n"));
                         }
@@ -183,7 +181,7 @@ static bool parse_cmd(const char *cmd, int size)
                 DEBUG(ZONE_FUNCTION, ("   *** Let's go to the downloading process ***\r\n"));
     
                 // system reset test
-                BSP_Download_Reset();
+                //BSP_Download_Reset();
             }
             ret = true;
         }

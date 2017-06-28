@@ -20,7 +20,7 @@ static void init()
     initialDB = true;
 }
 
-RQueue_StatusTypeDef updateDB(DB_TypeDef db, char *data, int size, bool mustack)
+RQueue_StatusTypeDef updateDB(DB_TypeDef db, char *data, int size, int needack)
 {
     RQueue_StatusTypeDef status = RQUEUE_ERROR;
 
@@ -42,7 +42,7 @@ RQueue_StatusTypeDef updateDB(DB_TypeDef db, char *data, int size, bool mustack)
         element item;
         memcpy(item.edata ,data, size);
         item.size = size;
-        item.retcount = (mustack)? 10 : 0; // if mustack is true, a receiver must respond ACK. 
+        item.retcount = needack; 
 
         do 
         {

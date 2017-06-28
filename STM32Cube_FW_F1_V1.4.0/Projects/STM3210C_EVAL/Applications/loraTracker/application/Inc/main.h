@@ -39,12 +39,15 @@
 #ifndef __MAIN_H
 #define __MAIN_H
 
+#define USE_DEBUGLOG_DRVIER
+
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
 #include "stm3210c_loraTracker.h"
 #include "stdio.h"
 #include "timtimer.h"
 #include "rtc.h"
+#include "debuglog.h"
 #include "ecommand.h"
 #include "lcommand.h"
 #include "gcommand.h"
