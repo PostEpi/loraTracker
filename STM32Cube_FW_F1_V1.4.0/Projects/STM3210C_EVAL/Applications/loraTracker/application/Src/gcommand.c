@@ -187,7 +187,7 @@ void GCMD_Process(void)
 COM_StatusTypeDef GCMD_IOcontrol(GCOM_IOControlTypedef io, int *input, int insize, int *output, int *outsize) 
 {
     COM_StatusTypeDef ret = COM_OK;
-    DEBUG(ZONE_FUNCTION, ("+GCMD_IOcontrol %d, 0x%x, %d, 0x%x, %d\r\n", io, input, insize, output, outsize));
+    DEBUG(ZONE_FUNCTION, ("+GCMD_IOcontrol %d, 0x%x, %d, 0x%x, %d\r\n", io, input, insize, output, *outsize));
 
     switch(io)
     {

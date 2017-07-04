@@ -62,7 +62,7 @@ static UART_HandleTypeDef UartHandle;
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* based on UART_HandleTypeDef */
-#define LCOM_BUFFER_BYTE_SIZE   256
+#define LCOM_BUFFER_BYTE_SIZE   512
 
 static struct
 {
@@ -307,7 +307,7 @@ void lcom_IRQHandler(void)
 {
     /* USER CODE BEGIN USART2_IRQn 0 */
     UART_HandleTypeDef *huart = &UartHandle;
-    char ch;
+    //char ch;
     uint32_t tmp_flag = 0, tmp_it_source = 0;
 
     tmp_flag = __HAL_UART_GET_FLAG(huart, UART_FLAG_RXNE);

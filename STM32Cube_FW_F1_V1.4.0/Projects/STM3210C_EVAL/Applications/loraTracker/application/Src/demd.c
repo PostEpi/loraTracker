@@ -91,7 +91,7 @@ DEMD_StatusTypeDef DEMD_IOcontrol(DEMD_IOControlTypedef io, int *input, int insi
 {
     DEMD_StatusTypeDef ret = DEMD_OK;
 
-    DEBUG(ZONE_FUNCTION, ("+DEMD_IOcontrol %d, 0x%x, %d, 0x%x, %d\r\n", io, input, insize, output, outsize));
+    DEBUG(ZONE_FUNCTION, ("+DEMD_IOcontrol %d, 0x%x, %d, 0x%x, %d\r\n", io, input, insize, output, *outsize));
 
     switch (io)
     {
@@ -422,4 +422,6 @@ static bool storeReportCycle(int value)
     /* set and store the boot count number to Env */
     ef_set_env(SETTING_PERIOD_REPORT_CYCLE, c_report);
     ef_save_env();
+    
+    return true;
 }

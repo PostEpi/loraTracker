@@ -108,6 +108,6 @@
 typedef void (*callbackFunc)(const char *cmd, int size); 
 void initWisol(callbackFunc cb);
 bool writeLRW(const char *msg, int size, int bypasscmd);
-bool parser_Wisol(const char *cmd, int size);
+bool parser_Wisol(char *cmd, int size);
 
 #endif //__WISOL_H_

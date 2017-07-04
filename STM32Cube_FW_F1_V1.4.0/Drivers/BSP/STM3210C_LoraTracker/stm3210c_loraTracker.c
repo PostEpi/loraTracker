@@ -535,7 +535,8 @@ void BSP_Lora_Wakeup(void)
 
 void BSP_Delay_HW_Reset(void)
 {
-    HAL_Delay(1000);
+    HAL_Delay(3000);
+    BSP_Lora_HW_Reset();
     BSP_HW_Reset();
 }
 

@@ -32,7 +32,9 @@ static  short       res_sBattery;               // battery status
  * does not trap invalid chars!
  */	
 int digit2dec(char digit) {
-	if (digit >= 65) 
+        if (digit >= 97)
+                return digit - 87;
+	else if (digit >= 65) 
 		return digit - 55;
 	else 
 		return digit - 48;

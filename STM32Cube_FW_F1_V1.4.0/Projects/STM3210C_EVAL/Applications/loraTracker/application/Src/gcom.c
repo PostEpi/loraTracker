@@ -62,7 +62,7 @@ static UART_HandleTypeDef UartHandle;
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* based on UART_HandleTypeDef */
-#define GCOM_BUFFER_BYTE_SIZE   256
+#define GCOM_BUFFER_BYTE_SIZE   512
 
 static struct
 {

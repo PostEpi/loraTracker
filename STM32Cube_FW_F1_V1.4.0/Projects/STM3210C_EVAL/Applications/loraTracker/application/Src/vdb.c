@@ -131,5 +131,5 @@ bool isEmptydDB(DB_TypeDef db)
 
     rqueue *rq = &g_db[db];
     //DEBUG(ZONE_TRACE, ("dabaase count = %d\r\n", rq->count));
-    (rq->count == 0)? true : false;
+    return (rq->count == 0)? true : false;
 }

@@ -164,16 +164,19 @@ void LCMD_Process(void)
 COM_StatusTypeDef LCMD_IOcontrol(LCOM_IOControlTypedef io, int *input, int insize, int *output, int *outsize) 
 {
     COM_StatusTypeDef ret = COM_OK;
-    DEBUG(ZONE_FUNCTION, ("+LCMD_IOcontrol %d, 0x%x, %d, 0x%x, %d\r\n", io, input, insize, output, outsize));
+    DEBUG(ZONE_FUNCTION, ("+LCMD_IOcontrol %d, 0x%x, %d, 0x%x, %d\r\n", io, input, insize, output, *outsize));
 
     switch(io)
     {
         case LCOM_REPORT_TO_SERVER_FAILED:
-            element item;
-            
             DEBUG(ZONE_WARN, ("LCMD_IOcontrol : Sending message is failed. So database item has to be deleted \r\n"));
-            DEMD_IOcontrol(DEMD_REPORT_TO_SERVER_FAILED, NULL, 0, NULL, 0);
+
+            // delete a database that were previouly requested to be transferred.
+            element item;
             deleteDB(LOR, &item);
+            
+            // notify error to the demd 
+            DEMD_IOcontrol(DEMD_REPORT_TO_SERVER_FAILED, NULL, 0, NULL, 0);
             break;
         default:
             ret = COM_PARAM_ERROR;

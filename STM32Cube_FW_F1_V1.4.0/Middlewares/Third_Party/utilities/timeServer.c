@@ -212,7 +212,7 @@ static void TimerInsertNewHeadTimer(TimerEvent_t *obj)
 void TimerIrqHandler(void)
 {
     TimerEvent_t *cur;
-    TimerEvent_t *next;
+    //TimerEvent_t *next;
     // remove all the expired object from the list
     while ((TimerListHead != NULL) && (TimerListHead->Timestamp < TIM_GetTick()))
     {

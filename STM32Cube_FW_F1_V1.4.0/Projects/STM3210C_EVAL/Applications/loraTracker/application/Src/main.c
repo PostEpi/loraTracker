@@ -40,6 +40,7 @@
 #include "main.h"
 #include "rtc.h"
 #include "vdb.h"
+#include "wisol.h"
 #include <string.h>
 
 /** @addtogroup STM32F1xx_HAL_Examples
@@ -137,10 +138,12 @@ static void USER_Process()
             // it's passed to the lora;
             if(bfound == false) 
             {
+				// You must be able to send commands directly to the lora chip for test certification. Sk spec 
                 DEBUG(ZONE_TRACE, ("USER_Process : it has been sent to lora(%s)", buffer));
                 //updateDB(LOR, buffer, msgcount, CID_TX_BYPASS_PROCESS_FOR_SKIOT);
-                int changetime = 10;
-                DEMD_IOcontrol(DEMD_REPORT_PERIOD_CHANGE, &changetime, 1, NULL, 0);
+                //int changetime = 1;
+                //DEMD_IOcontrol(DEMD_REPORT_PERIOD_CHANGE, &changetime, 1, NULL, 0);
+                BSP_Lora_Wakeup();
                 LBPRINTF(buffer, msgcount);
             }
 
