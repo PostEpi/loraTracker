@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "bbox.h"
+#include "utilities.h"
 #include "debug.h"
 
 
@@ -27,6 +28,8 @@ static	char		res_cManufacture;			// manufacture
 static	char		res_cEvent;					// Event
 static  short       res_sBattery;               // battery status
 
+
+#if 0
 /*
  * returns base-16 value of chars '0'-'9' and 'A'-'F';
  * does not trap invalid chars!
@@ -74,6 +77,7 @@ float string2float(char* s) {
 
 	return decimal_part;
 }
+#endif
 
 static bool parsedata() 
 {

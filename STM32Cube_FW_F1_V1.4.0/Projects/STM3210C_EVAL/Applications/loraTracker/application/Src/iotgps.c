@@ -11,6 +11,7 @@ void initIotGPS()
 {
 
 }
+
 bool getIotGPSMessage(IotGPS_Typedef *data, char *pout, int *outsize)
 {
     int formatSize = sizeof(IotGPS_Typedef);
@@ -59,32 +60,3 @@ bool getIotUserMessage(IotUser_Typedef *data, char *pout, int *outsize)
     return true;
 }
 
-static void itohex(char *buf, int size, int value)
-{
-    int i = 0, p = 0;
-    char num[10];
-    
-    sprintf(num, "%x", value);
-    
-    while(size--) 
-    {
-        buf[p] = digit2dec(num[i++]) << 4;
-        buf[p] += digit2dec(num[i++]);
-        p++;
-    }
-}
-
-static void ftohex(char *buf, int size, float value)
-{
-    int i = 0, p = 0;
-    char num[20];
-    
-    sprintf(num, "%f", value);
-    
-    while(size--) 
-    {
-        buf[p] = digit2dec(num[i++]) << 4;
-        buf[p] += digit2dec(num[i++]);
-        p++;
-    }
-}

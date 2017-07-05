@@ -274,5 +274,5 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
 {
 	/* Toggle LED1 */
-	BSP_LED_Toggle(LED1);
+	//BSP_LED_Toggle(LED1);
 }

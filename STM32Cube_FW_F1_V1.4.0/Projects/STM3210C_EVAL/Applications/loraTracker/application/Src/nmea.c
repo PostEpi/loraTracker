@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "stm32f1xx.h"
+#include "utilities.h"
 #include "debug.h"
 
 static	bool		m_bFlagRead,					// flag used by the parser, when a valid sentence has begun
@@ -33,8 +34,8 @@ static	float			res_fBearing;					// GPRMC
 // the parser, currently handling GPRMC and GPGGA, but easy to add any new sentences
 static	void 	parsedata();
 // aux functions
-static	int	 	digit2dec(char hexdigit);
-static	float	string2float(char* s);
+// static	int	 	digit2dec(char hexdigit);
+// static	float	string2float(char* s);
 static	int		mstrcmp(const char *s1, const char *s2);
 
 
@@ -230,6 +231,9 @@ static void parsedata() {
 		m_bFlagDataReady = true;
 	}		
 }
+
+#if 0
+// Codes as below move to utilities.h
 /*
  * returns base-16 value of chars '0'-'9' and 'A'-'F';
  * does not trap invalid chars!
@@ -274,6 +278,7 @@ static float string2float(char* s) {
 
 	return decimal_part;
 }
+#endif
 
 static int mstrcmp(const char *s1, const char *s2)
 {

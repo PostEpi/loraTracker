@@ -9,20 +9,11 @@
 #include "lcommand.h"
 #include "debug.h"
 
-#define WISOL_MAX_RESPONSE_TIME 50000
-#define WISOL_RESPONSE_TIME 10000
-#define WISOL_BUFFER_SIZE 136
-#define WISOL_USER_DATA_LIMIT 65
+#define WISOL_MAX_RESPONSE_TIME 50000   
+#define WISOL_RESPONSE_TIME     10000
 
-#define MODULE_RESPONSE_MAX 18
+#define MODULE_RESPONSE_MAX 19
 #define MODULE_RESPONSE_LEN 35
-
-#define IS_CAP_LETTER(c)    (((c) >= 'A') && ((c) <= 'F'))
-#define IS_LC_LETTER(c)     (((c) >= 'a') && ((c) <= 'f'))
-#define IS_09(c)            (((c) >= '0') && ((c) <= '9'))
-#define ISVALIDHEX(c)       (IS_CAP_LETTER(c) || IS_LC_LETTER(c) || IS_09(c))
-#define ISVALIDDEC(c)       IS_09(c)
-#define CONVERTDEC(c)       (c - '0')
 
 static const uint8_t MODULE_RESPONSE[MODULE_RESPONSE_MAX][MODULE_RESPONSE_LEN] =
     {
@@ -44,7 +35,7 @@ static const uint8_t MODULE_RESPONSE[MODULE_RESPONSE_MAX][MODULE_RESPONSE_LEN] =
         "Rx_MSG",
         "FRAME_TYPE_DATA_CONFIRMED_DOWN",
         "FRAME_TYPE_DATA_UNCONFIRMED_DOWN",
-
+        "WAKE_UP",
 };
 
 typedef enum {
@@ -66,14 +57,15 @@ typedef enum {
     Rx_MSG,
     FRAME_TYPE_DATA_CONFIRMED_DOWN,
     FRAME_TYPE_DATA_UNCONFIRMED_DOWN,
+    WAKE_UP,
 } Wisol_ResposeTypeDef;
 
 typedef enum {
-    MSG_DEVRESET = 0x80,
-    MSG_REPPERCHANGE = 0x81,
-    MSG_REPIMMEDIATE = 0x82,
-    MSG_EXTDEVMGMT = 0x00
-} Rx_MSG_Control_TypeDef;
+    RX_MSG_CMD_DEVRESET = 0x80,
+    RX_MSG_CMD_REPPERCHANGE = 0x81,
+    RX_MSG_CMD_REPIMMEDIATE = 0x82,
+    RX_MSG_CMD_EXTDEVMGMT = 0x00
+} RX_MSG_CMD_Control_TypeDef;
 
 typedef struct
 {
@@ -86,25 +78,25 @@ typedef struct
     char version[2];
     char messagetype[2];
     char payloadlength[2];
-    char payload[WISOL_BUFFER_SIZE];
+    char payload[WISOL_USER_DATA_SIZE];
 } Rx_MSG_TypeDef;
 
 typedef struct
 {
-    char cmd[WISOL_BUFFER_SIZE];
+    char cmd[WISOL_LRW_CMD_DATA_SIZE];
     int sizeofcmd;
     int error;
     bool noreset;
     int timeoutsec;
     Wisol_ResposeTypeDef respAck;
-} Command_TypeDef;
+} LRW_Command_TypeDef;
 
 static bool wisolInit = false;
 static int transferFail = 0;
 static callbackFunc callback = NULL;
 
-static Command_TypeDef dataCmd;
-static Command_TypeDef *currentCmd = NULL;
+static LRW_Command_TypeDef dataCmd;
+static LRW_Command_TypeDef *currentCmd = NULL;
 
 static TimerEvent_t responseTimer;
 
@@ -115,7 +107,7 @@ static void responseTimerOn(int timesec);
 static void responseTimerOff();
 static bool sendTx(const char *msg, int size, Wisol_ResposeTypeDef resptype);
 static bool sendBinaryTx(const char *msg, int size, Wisol_ResposeTypeDef resptype);
-static bool send(Command_TypeDef *sendmsg);
+static bool send(LRW_Command_TypeDef *sendmsg);
 
 void initWisol(callbackFunc cb)
 {
@@ -124,16 +116,16 @@ void initWisol(callbackFunc cb)
         callback = cb;
         wisolInit = false;
 
-        // To check Lora's port.
-        memset(&dataCmd, 0, sizeof(Command_TypeDef));
+        // To check Lora's port and debug mode is off.
+        memset(&dataCmd, 0, sizeof(LRW_Command_TypeDef));
         strcpy(dataCmd.cmd, "LRW 50 0\r\n");
         dataCmd.sizeofcmd = strlen(dataCmd.cmd);
         dataCmd.noreset = true;
         dataCmd.timeoutsec = WISOL_RESPONSE_TIME;
         dataCmd.respAck = OK;
 
+        // The first command is executed after a few seconds because Lora needs a intialization time.
         currentCmd = &dataCmd;
-
         responseTimerOn(dataCmd.timeoutsec);
     }
 }
@@ -157,13 +149,13 @@ bool writeLRW(const char *msg, int size, int bypasscmd)
         }
         ////////////////////////////////////////////////////////////
 
-        if (size < WISOL_USER_DATA_LIMIT && currentCmd == NULL)
+        if (size <= WISOL_USER_DATA_LIMIT && currentCmd == NULL)
         {
             return sendBinaryTx(msg, size, UNCON_DOWN);
         }
         else
         {
-            if (size >= WISOL_USER_DATA_LIMIT)
+            if (size > WISOL_USER_DATA_LIMIT)
             {
                 DEBUG(ZONE_ERROR, ("The size of message is larger than the content that the LORA can transmit \r\n"));
                 ;
@@ -171,13 +163,12 @@ bool writeLRW(const char *msg, int size, int bypasscmd)
             else if (currentCmd != NULL)
             {
                 DEBUG(ZONE_ERROR, ("In sending Message @@@@ \r\n"));
-                ;
             }
         }
     }
     else
     {
-        DEBUG(ZONE_ERROR, ("The lora is not ready !!! \r\n"));
+        DEBUG(ZONE_ERROR, ("Lora is not ready !!! \r\n"));
         ;
     }
 
@@ -226,6 +217,8 @@ static void OnResponseEvent()
 
             DEBUG(ZONE_FUNCTION, ("OnResponseEvent : Due to timeout, messages can no longer be delivered. %d \r\n", transferFail));
 
+			// Indicates the transmission failure with LED2
+            BSP_LED_On(LED2);
             responseTimerOff();
             LCMD_IOcontrol(LCOM_REPORT_TO_SERVER_FAILED, NULL, 0, NULL, 0);
         }
@@ -262,14 +255,14 @@ static bool sendTx(const char *msg, int size, Wisol_ResposeTypeDef resptype)
     bool ret = false;
     DEBUG(ZONE_FUNCTION, ("+sendTx : size=%d, resptype=%d \r\n", size, resptype));
 
-    if (size > WISOL_BUFFER_SIZE - 12)
+    if (size > WISOL_USER_DATA_LIMIT)
     {
         DEBUG(ZONE_ERROR, ("sendTx : The size of message is larger than the content\r\n"));
         ;
         return false;
     }
 
-    memset(&dataCmd, 0, sizeof(Command_TypeDef));
+    memset(&dataCmd, 0, sizeof(LRW_Command_TypeDef));
     char *cmd = dataCmd.cmd;
 
     *(cmd++) = 'L';
@@ -317,14 +310,14 @@ static bool sendBinaryTx(const char *msg, int size, Wisol_ResposeTypeDef resptyp
 
     DEBUG(ZONE_FUNCTION, ("+sendBinaryTx : size=%d, resptype=%d\r\n", size, resptype));
 
-    if (size > WISOL_BUFFER_SIZE - 12)
+    if (size > WISOL_USER_DATA_LIMIT)
     {
         DEBUG(ZONE_ERROR, ("sendBinaryTx : The size of message is larger than the content\r\n"));
         ;
         return false;
     }
 
-    memset(&dataCmd, 0, sizeof(Command_TypeDef));
+    memset(&dataCmd, 0, sizeof(LRW_Command_TypeDef));
     char *cmd = dataCmd.cmd;
 
     *(cmd++) = 'L';
@@ -344,14 +337,9 @@ static bool sendBinaryTx(const char *msg, int size, Wisol_ResposeTypeDef resptyp
     // Fport
     *(cmd++) = 1;
 
-    size = 30;
-
     // length
     *(cmd++) = size;
-
-    // Message
-    //memcpy(cmd, msg, size);
-    strcpy(cmd, "012345678901234567890123456789");
+    memcpy(cmd, msg, size);
 
     *(cmd + size) = '\r';     // CR
     *(cmd + size + 1) = '\n'; // LF
@@ -369,7 +357,7 @@ static bool sendBinaryTx(const char *msg, int size, Wisol_ResposeTypeDef resptyp
     return ret;
 }
 
-static bool send(Command_TypeDef *sendmsg)
+static bool send(LRW_Command_TypeDef *sendmsg)
 {
     wakeup();
 
@@ -413,6 +401,8 @@ static bool externalDevManage(const char *cmd, int sizeofextdev)
                 itime = digit2dec(ctime[0]) * 16 + digit2dec(ctime[1]);
                 DEBUG(ZONE_FUNCTION, ("The report cycle will be changed to %d.\r\n", itime));
                 DEMD_IOcontrol(DEMD_REPORT_PERIOD_CHANGE, &itime, 1, NULL, 0);
+                
+                return true;
             }
             else 
             {
@@ -424,6 +414,8 @@ static bool externalDevManage(const char *cmd, int sizeofextdev)
             DEBUG(ZONE_ERROR, ("The report cycle is invalid @@@@.\r\n"));
         }
     }
+    
+    return false;
 }
 
 static int rxmsgpf222Parser(int index, const char *cmd, int size, char *outmsg, int outsize)
@@ -484,25 +476,25 @@ static void rxmsgparser(const char *cmd, int size)
     which = digit2dec(rxtype.messagetype[0]) * 16 + digit2dec(rxtype.messagetype[1]);
     switch (which)
     {
-    case MSG_DEVRESET:
+    case RX_MSG_CMD_DEVRESET:
         DEBUG(ZONE_FUNCTION, ("System reset after 1sec..\r\n"));
         BSP_Delay_HW_Reset(); // time delay to allow lora module to be able to response Ack to N/W server
         break;
-    case MSG_REPPERCHANGE:
+    case RX_MSG_CMD_REPPERCHANGE:
         payloadlength = digit2dec(rxtype.payloadlength[0]) * 16 + digit2dec(rxtype.payloadlength[1]);
-        DEBUG(ZONE_FUNCTION, ("rxmsgparser : MSG_REPPERCHANGE payloadlength=%d.\r\n", payloadlength));
+        DEBUG(ZONE_FUNCTION, ("rxmsgparser : RX_MSG_CMD_REPPERCHANGE payloadlength=%d.\r\n", payloadlength));
         if (payloadlength)
         {
             int delaytime = digit2dec(rxtype.payload[0]) * 16 + digit2dec(rxtype.payload[1]);
             DEBUG(ZONE_FUNCTION, ("Interval will be changed to %d.\r\n", delaytime));
         }
         break;
-    case MSG_REPIMMEDIATE:
+    case RX_MSG_CMD_REPIMMEDIATE:
         DEBUG(ZONE_FUNCTION, ("System reset after 1sec..\r\n"));
         break;
-    case MSG_EXTDEVMGMT:
+    case RX_MSG_CMD_EXTDEVMGMT:
         payloadlength = digit2dec(rxtype.payloadlength[0]) * 16 + digit2dec(rxtype.payloadlength[1]);
-        DEBUG(ZONE_FUNCTION, ("rxmsgparser : MSG_EXTDEVMGMT payloadlength=%d.\r\n", payloadlength));
+        DEBUG(ZONE_FUNCTION, ("rxmsgparser : RX_MSG_CMD_EXTDEVMGMT payloadlength=%d.\r\n", payloadlength));
         if (payloadlength)
         {
             externalDevManage(rxtype.payload, payloadlength);
@@ -528,6 +520,7 @@ static bool responseProcess(const int index, const char *cmd, int size)
         if (currentCmd != NULL && currentCmd->respAck == OK)
         {
             DEBUG(ZONE_FUNCTION, ("OK received. command done\r\n"));
+ 
             responseTimerOff();
             currentCmd = NULL;
         }
@@ -602,6 +595,9 @@ static bool responseProcess(const int index, const char *cmd, int size)
             responseTimerOff();
             currentCmd = NULL;
 
+            // When the transmission is completed, it is led off.
+            BSP_LED_Off(LED2);
+
             ret = true;
         }
         // a mission is succeed
@@ -638,6 +634,10 @@ static bool responseProcess(const int index, const char *cmd, int size)
     case EXTDEVMGMT:
         DEBUG(ZONE_FUNCTION, ("EXTDEVMGMT : %d, %s\r\n", rxmsgcnt, rxmsg));
         externalDevManage(rxmsg, rxmsgcnt);
+        break;
+    case WAKE_UP:
+		// When Lora wakes up, it turns on.
+        BSP_LED_On(LED2);
         break;
     }
 

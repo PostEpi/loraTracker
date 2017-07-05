@@ -48,6 +48,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include "stm3210c_loraTracker.h"
 #include "stm32f1xx.h"
 #include "nmea.h"
 #include "gcommand.h"
@@ -133,6 +134,14 @@ void GCMD_Process(void)
             DEBUG(ZONE_GPS, ("latitude=%f, longitude=%f\r\n", getLatitude(), getLongitude()));
             DEBUG(ZONE_GPS, ("satelites=%d altitude=%d\r\n", getSatellites(), getAltitude())); 
             DEBUG(ZONE_GPS, ("speed=%d bearing=%d\r\n", getSpeed(), getBearing()));
+
+			// When gps data is valided, the led flashes.
+            BSP_LED_Toggle(LED1);
+        }
+        else 
+        {
+			// When gps data is received, it turns on
+            BSP_LED_On(LED1);
         }
         if (command[i] == '\n')
         {

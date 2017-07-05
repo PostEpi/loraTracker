@@ -60,6 +60,7 @@ Maintainer: Miguel Luis, Gregory Cristian and Wael Guibene
 
 /* Includes ------------------------------------------------------------------*/
 #include <time.h>
+#include "timtimer.h"
 #include "timeServer.h"
 
 /*!

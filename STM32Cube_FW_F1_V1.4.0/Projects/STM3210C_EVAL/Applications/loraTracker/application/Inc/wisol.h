@@ -1,6 +1,10 @@
 #ifndef __WISOL_H_
 #define __WISOL_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #define CID_SET_ACTIVATION                                      "30"
 #define CID_SET_ACTIVATION_OPTION1_OTAA                         "otaa"
@@ -102,12 +106,21 @@
 #define CID_TX_MESSAGE_BINARY_DATA_FPORT                		"%d"   // 0x1 ~ 0xDD
 #define CID_TX_MESSAGE_BINARY_DATA_LENGTH               		"%d"   // 0x1 ~ 0xF2
 
+#define WISOL_USER_DATA_LIMIT                                   65
+#define WISOL_USER_DATA_SIZE                                    WISOL_USER_DATA_LIMIT*2
+#define WISOL_LRW_CMD_DATA_SIZE                                 WISOL_USER_DATA_LIMIT+20
 
 #define CID_TX_BYPASS_PROCESS_FOR_SKIOT                         0xff
 
 typedef void (*callbackFunc)(const char *cmd, int size); 
 void initWisol(callbackFunc cb);
+bool isInProcess();
 bool writeLRW(const char *msg, int size, int bypasscmd);
 bool parser_Wisol(char *cmd, int size);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif //__WISOL_H_
