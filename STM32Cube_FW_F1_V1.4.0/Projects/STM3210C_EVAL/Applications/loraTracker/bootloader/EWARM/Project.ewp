@@ -32,11 +32,11 @@
                 </option>
                 <option>
                     <name>Input description</name>
-                    <state>Automatic choice of formatter.</state>
+                    <state>Automatic choice of formatter, without multibyte support.</state>
                 </option>
                 <option>
                     <name>Output description</name>
-                    <state>Automatic choice of formatter.</state>
+                    <state>Automatic choice of formatter, without multibyte support.</state>
                 </option>
                 <option>
                     <name>GOutputBinary</name>
@@ -344,6 +344,7 @@
                     <state>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32F1xx_HAL_Driver\Inc</state>
                     <state>$PROJ_DIR$\..\..\..\..\..\..\Drivers\BSP\STM3210C_LORATRACKER</state>
                     <state>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\flash</state>
+                    <state>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\utilities</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1122,6 +1123,15 @@
                 <name>flash</name>
                 <file>
                     <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\flash\flash_if.c</name>
+                </file>
+            </group>
+        </group>
+        <group>
+            <name>Third_Party</name>
+            <group>
+                <name>utilities</name>
+                <file>
+                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\utilities\utilities.c</name>
                 </file>
             </group>
         </group>

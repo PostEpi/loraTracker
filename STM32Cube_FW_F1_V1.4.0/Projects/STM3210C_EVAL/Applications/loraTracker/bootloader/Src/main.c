@@ -136,14 +136,19 @@ int main(void)
         BSP_LED_Init(LED_RED);
         BSP_LED_Init(LED_GREEN);
 
-        //BSP_LED_Toggle(LED_RED);
+        BSP_LED_Toggle(LED_RED);
         BSP_LED_On(LED_GREEN);
-#if 0
+
+#if 1
         // sample code for externel uart (blackbox)
-        HAL_UART_Transmit(&ExUartHandle, msg, sizeof(msg), 0xffffffff);
-        HAL_UART_Receive(&ExUartHandle, &key, 1, 0xffffffff);
-        HAL_UART_Transmit(&ExUartHandle, &key, sizeof(key), 0xffffffff);
+        //HAL_UART_Transmit(&ExUartHandle, msg, sizeof(msg), 0xffffffff);
+        //HAL_UART_Receive(&ExUartHandle, &key, 1, 0xffffffff);
+        //HAL_UART_Transmit(&ExUartHandle, &key, sizeof(key), 0xffffffff);
         
+		Serial_PutString(&UartHandle, (uint8_t *)"\r\n======================================================================");
+        Serial_PutString(&UartHandle, (uint8_t *)"\r\n=              (C) COPYRIGHT 2017 Download Process                   =");
+		Serial_PutString(&UartHandle, (uint8_t *)"\r\n======================================================================");
+        SerialDownload(&ExUartHandle, true, true);
         BSP_Booting_Reset();
 #endif 
         /* Display main menu */

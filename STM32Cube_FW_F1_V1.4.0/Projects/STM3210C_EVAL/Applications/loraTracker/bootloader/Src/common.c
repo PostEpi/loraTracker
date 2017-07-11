@@ -56,7 +56,7 @@
   * @param  p_string: The string to be printed
   * @retval None
   */
-void Serial_PutString(uint8_t *p_string)
+void Serial_PutString(UART_HandleTypeDef *pUartHandle, uint8_t *p_string)
 {
   uint16_t length = 0;
 
@@ -64,7 +64,7 @@ void Serial_PutString(uint8_t *p_string)
   {
     length++;
   }
-  HAL_UART_Transmit(&UartHandle, p_string, length, TX_TIMEOUT);
+  HAL_UART_Transmit(pUartHandle, p_string, length, TX_TIMEOUT);
 }
 
 /**
@@ -72,14 +72,14 @@ void Serial_PutString(uint8_t *p_string)
   * @param  param The byte to be sent
   * @retval HAL_StatusTypeDef HAL_OK if OK
   */
-HAL_StatusTypeDef Serial_PutByte( uint8_t param )
+HAL_StatusTypeDef Serial_PutByte(UART_HandleTypeDef *pUartHandle, uint8_t param )
 {
   /* May be timeouted... */
   if ( UartHandle.State == HAL_UART_STATE_TIMEOUT )
   {
     UartHandle.State = HAL_UART_STATE_READY;
   }
-  return HAL_UART_Transmit(&UartHandle, &param, 1, TX_TIMEOUT);
+  return HAL_UART_Transmit(pUartHandle, &param, 1, TX_TIMEOUT);
 }
 /**
   * @}

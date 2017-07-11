@@ -54,8 +54,8 @@
 #define RX_TIMEOUT          HAL_MAX_DELAY
 
 
-void Serial_PutString(uint8_t *p_string);
-HAL_StatusTypeDef Serial_PutByte(uint8_t param);
+void Serial_PutString(UART_HandleTypeDef *pUartHandle, uint8_t *p_string);
+HAL_StatusTypeDef Serial_PutByte(UART_HandleTypeDef *pUartHandle, uint8_t param);
 
 #endif  /* __COMMON_H */
 

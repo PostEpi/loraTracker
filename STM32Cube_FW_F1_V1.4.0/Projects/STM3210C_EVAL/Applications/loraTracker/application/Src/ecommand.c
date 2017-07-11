@@ -103,11 +103,11 @@ void ECMD_Process(void)
     {
         command[i] = eGetNewChar();
 
-#if 1 /* echo On    */
-        DEBUG(ZONE_TRACE, ("%c", command[i]));
+#if 0 /* echo On    */
+        DEBUG(ZONE_FUNCTION, ("%c", command[i]));
 #endif
 
-        if ((command[i] == '\r') || (command[i] == '\n'))
+        if (/*(command[i] == '\r') || */(command[i] == '\n'))
         {
             if (i != 0)
             {
@@ -181,7 +181,7 @@ static bool parse_cmd(const char *cmd, int size)
                 DEBUG(ZONE_FUNCTION, ("   *** Let's go to the downloading process ***\r\n"));
     
                 // system reset test
-                //BSP_Download_Reset();
+                BSP_Download_Reset();
             }
             ret = true;
         }

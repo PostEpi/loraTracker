@@ -108,8 +108,8 @@ typedef enum
 #define MAX_ERRORS              ((uint32_t)5)
 
 /* Exported functions ------------------------------------------------------- */
-COM_StatusTypeDef Ymodem_Receive(uint32_t *p_size);
-COM_StatusTypeDef Ymodem_Transmit(uint8_t *p_buf, const uint8_t *p_file_name, uint32_t file_size);
+COM_StatusTypeDef Ymodem_Receive(UART_HandleTypeDef *pUartHandle,uint32_t *p_size, bool bOneFileTransmitt);
+COM_StatusTypeDef Ymodem_Transmit(UART_HandleTypeDef *pUartHandle,uint8_t *p_buf, const uint8_t *p_file_name, uint32_t file_size);
 
 #endif  /* __YMODEM_H_ */
 

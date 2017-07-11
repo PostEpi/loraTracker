@@ -1264,5 +1264,14 @@
                 </file>
             </group>
         </group>
+        <group>
+            <name>Third_Party</name>
+            <group>
+                <name>utilities</name>
+                <file>
+                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\utilities\utilities.c</name>
+                </file>
+            </group>
+        </group>
     </group>
 </project>

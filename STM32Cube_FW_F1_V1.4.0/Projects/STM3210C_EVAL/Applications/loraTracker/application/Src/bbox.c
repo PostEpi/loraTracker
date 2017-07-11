@@ -106,7 +106,13 @@ static bool parsedata()
 
         return true;
 	}
+	if (strstr(words[0], BBOX_STX_BDRDP) != NULL) {
+		// data ready
+		bFlagDataReady = true;
 
+        return true;
+	}
+    
     return false;
 
 }

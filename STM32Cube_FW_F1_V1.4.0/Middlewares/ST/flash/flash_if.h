@@ -202,7 +202,7 @@ enum {
 /* Define the address from where user application will be loaded.
    Note: this area is reserved for the IAP code                  */
 #define FLASH_PAGE_STEP         FLASH_PAGE_SIZE           /* Size of page : 2 Kbytes */
-#define APPLICATION_ADDRESS     (uint32_t)0x08008000      /* Start user code address: ADDR_FLASH_PAGE_16 */
+#define APPLICATION_ADDRESS     (uint32_t)0x0800A000      /* Start user code address: ADDR_FLASH_PAGE_16 */
 
 /* Notable Flash addresses */
 #define USER_FLASH_END_ADDRESS        0x08040000
