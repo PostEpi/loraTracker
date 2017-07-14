@@ -15,7 +15,7 @@ typedef enum {
 } IOT_MessageTypeDef;
 
 
-typedef struct {
+typedef __packed struct {
     char    type;
     char    version;
     char    reportcycle;
@@ -28,7 +28,7 @@ typedef struct {
     char    statusofcar;         
 } IotGPS_Typedef;
 
-typedef struct {
+typedef __packed struct {
     char    type;
     char    manufacture;
     char    event;
@@ -40,7 +40,7 @@ typedef struct {
     char    battery;         
 } IotEvent_Typedef;
 
-typedef struct {
+typedef __packed struct {
     char    type;
     char    manufacture;
     char    event[22];

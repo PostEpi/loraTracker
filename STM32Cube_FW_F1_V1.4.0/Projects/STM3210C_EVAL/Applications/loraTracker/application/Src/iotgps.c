@@ -12,6 +12,32 @@ void initIotGPS()
 
 }
 
+void displayTranferMessage(const char *data, int size)
+{
+    int value;
+    DEBUG(ZONE_FUNCTION, ("transfer : "));
+    for( int i = 0; i < size ; i++)
+    {
+         value = ((*data & 0xf0) >> 4);
+         if( value < 0xa) {
+           DEBUG(ZONE_FUNCTION, ("%c", value + 48));
+         } else {
+           DEBUG(ZONE_FUNCTION, ("%c", value + 55));
+         }
+
+                  value = (*data & 0xf);
+
+         if( value < 0xa) {
+           DEBUG(ZONE_FUNCTION, ("%c", value + 48));
+         } else {
+           DEBUG(ZONE_FUNCTION, ("%c", value + 55));
+         }
+         data++;
+    }
+    DEBUG(ZONE_FUNCTION, ("\r\n"));
+
+}
+
 bool getIotGPSMessage(IotGPS_Typedef *data, char *pout, int *outsize)
 {
     int formatSize = sizeof(IotGPS_Typedef);
@@ -24,6 +50,8 @@ bool getIotGPSMessage(IotGPS_Typedef *data, char *pout, int *outsize)
     *outsize = formatSize;
     memset(pout, 0, *outsize);
     memcpy(pout, data, formatSize);
+
+    displayTranferMessage(pout, formatSize);
 
     return true;
 }
@@ -41,6 +69,8 @@ bool getIotEventMessage(IotEvent_Typedef *data, char *pout, int *outsize)
     memset(pout, 0, *outsize);
     memcpy(pout, data, formatSize);
 
+    displayTranferMessage(pout, formatSize);
+
     return true;
 }
 
@@ -57,6 +87,7 @@ bool getIotUserMessage(IotUser_Typedef *data, char *pout, int *outsize)
     memset(pout, 0, *outsize);
     memcpy(pout, data, formatSize);
 
+    displayTranferMessage(pout, formatSize);
     return true;
 }
 

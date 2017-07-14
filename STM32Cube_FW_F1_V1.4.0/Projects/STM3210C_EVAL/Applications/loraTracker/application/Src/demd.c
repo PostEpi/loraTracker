@@ -12,7 +12,7 @@
 #include "iotgps.h"
 #include "easyflash.h"
 
-#define DEMD_PROCESS_LOG_SIZE       16
+#define DEMD_PROCESS_LOG_SIZE       4   
 #define SETTING_PERIOD_REPORT_CYCLE "period_report_cycle"
 #define MIN1                        60000
 
@@ -21,7 +21,7 @@ static TimerEvent_t reportToserverTimer;
 static int reportPeriodIndex = 0;
 static IOT_MessageTypeDef reportType = IOT_TYPE_NONE;
 
-char log[DEMD_PROCESS_LOG_SIZE];
+char log[DEMD_PROCESS_LOG_SIZE*2];
 static float prevLatitude = 0.0;
 static float prevLongitude = 0.0;
 
@@ -149,7 +149,7 @@ static int getReportCycleFromFlash()
 
 static bool getFinalPositionFromFlash(float *Latitude, float *Longitude)
 {
-    char c_report[10];
+    //char c_report[10];
               
     /* interger to string */
     //sprintf(c_report,"%3d", reportPeriodIndex);
@@ -158,7 +158,7 @@ static bool getFinalPositionFromFlash(float *Latitude, float *Longitude)
     //ef_set_env(SETTING_PERIOD_REPORT_CYCLE, c_report);
     //ef_save_env();
     
-    if(ef_read_final_log((uint32_t *)log, DEMD_PROCESS_LOG_SIZE) != EF_NO_ERR)
+    if(ef_read_final_log((uint32_t *)log, DEMD_PROCESS_LOG_SIZE + DEMD_PROCESS_LOG_SIZE) != EF_NO_ERR)
     {
         DEBUG(ZONE_ERROR, ("Reading a log on the flash is failed @@@@(%s)\r\n",log));
         *Latitude = 0.0;
@@ -171,25 +171,32 @@ static bool getFinalPositionFromFlash(float *Latitude, float *Longitude)
 
     // get previous message sent to sever from flash.
     // get the period value 
-    memset(c_report, 0, sizeof(c_report));
-    *Latitude = atof(strncpy(c_report, log, 8));
-    memset(c_report, 0, sizeof(c_report));
-    *Longitude = atof(strncpy(c_report, log+8, 8));
-
+    // memset(c_report, 0, sizeof(c_report));
+    // *Latitude = atof(strncpy(c_report, log, 8));
+    // memset(c_report, 0, sizeof(c_report));
+    // *Longitude = atof(strncpy(c_report, log+8, 8));
+    memcpy(Latitude, log, DEMD_PROCESS_LOG_SIZE);
+    memcpy(Longitude, log + DEMD_PROCESS_LOG_SIZE, DEMD_PROCESS_LOG_SIZE);
     return true;
 }
 
 static bool setFinalPositionToFlash(float Latitude, float Longitude)
 {
-    sprintf(log, "%08f%08f", Latitude, Longitude);
-    DEBUG(ZONE_FUNCTION, ("setFinalPositionToFlash : %s\r\n", log));
+//    sprintf(log, "%08f %08f", Latitude, Longitude);
+//    DEBUG(ZONE_FUNCTION, ("setFinalPositionToFlash : %s\r\n", log));
+    DEBUG(ZONE_FUNCTION, ("setFinalPositionToFlash : %f, %f\r\n", Latitude, Longitude));
 
-    if(ef_log_write((uint32_t *)log, DEMD_PROCESS_LOG_SIZE) != EF_NO_ERR)
+    if(ef_log_write((uint32_t *)&Latitude, DEMD_PROCESS_LOG_SIZE) != EF_NO_ERR)
     {
         DEBUG(ZONE_ERROR, ("setFinalPositionToFlash : To store data to flash is failed @@@@ \r\n"));
         return false;
     }
-
+    if(ef_log_write((uint32_t *)&Longitude, DEMD_PROCESS_LOG_SIZE) != EF_NO_ERR)
+    {
+        DEBUG(ZONE_ERROR, ("setFinalPositionToFlash : To store data to flash is failed @@@@ \r\n"));
+        return false;
+    }
+    
     return true;
 }
 
