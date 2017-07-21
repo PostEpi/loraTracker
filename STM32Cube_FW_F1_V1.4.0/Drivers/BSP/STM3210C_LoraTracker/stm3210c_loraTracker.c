@@ -84,8 +84,16 @@ typedef struct
 #define SD_NO_RESPONSE_EXPECTED 0x80
 
 /* Iot Tracker version number */
-#define __BOOTLOADER_VERSION        (0x01)
-#define __APPLICATION_VERSION       (0x01)
+#define __BOOTLOADER_VERSION        (1)
+#define __APPLICATION_VERSION       (3)
+
+#if 0
+__APPLICATION_VERSION: application version history.
+1 : base source
+2 : the codes for sk iot is added.
+3 : gps tunning
+#endif
+
 
 /**
  * @brief STM3210C EVAL BSP Driver version number
@@ -126,6 +134,15 @@ GPIO_TypeDef *LED_PORT[LEDn] = {LED1_GPIO_PORT,
 const uint16_t LED_PIN[LEDn] = {LED1_PIN,
                                 LED2_PIN};
 #endif
+
+/**
+ * @brief BUTTON variables
+ */
+GPIO_TypeDef *INPUT_PORT[INPUTn] = {FACTORY_INPUT_GPIO_PORT};
+
+const uint16_t INPUT_PIN[INPUTn] = {FACTORY_INPUT_PIN};
+
+const uint16_t INPUT_IRQn[INPUTn] = {FACTORY_INPUT_EXTI_IRQn};
 
 #if 0
 /**
@@ -529,7 +546,7 @@ void BSP_Lora_HW_Reset(void)
 void BSP_Lora_Wakeup(void)
 {
     BSP_OUTGPIO_High(OUTPUT_WKUP);
-    HAL_Delay(1);
+    HAL_Delay(2);
     BSP_OUTGPIO_Low(OUTPUT_WKUP);
 }
 
@@ -571,6 +588,69 @@ void BSP_OUTGPIO_Low(Output_TypeDef Outpin)
 void BSP_OUTGPIO_High(Output_TypeDef Outpin)
 {
     HAL_GPIO_WritePin(OUTPUT_PORT[Outpin], OUTPUT_PIN[Outpin], GPIO_PIN_SET);
+}
+
+
+    /**
+  * @brief  Configures push input GPIO and EXTI Line.
+  * @param  input: input to be configured.
+  *   This parameter can be one of the following values: 
+  *     @arg INPUT_FACTORY: factory input 
+  * @param  Input_Mode: Input mode requested.
+  *   This parameter can be one of the following values:   
+  *     @arg INTPUT_MODE_GPIO: Input will be used as simple IO 
+  *     @arg INTPUT_MODE_EXTI: Input will be connected to EXTI line
+  *                            with interrupt generation capability
+  * @retval None
+  */
+void BSP_Input_Init(Input_TypeDef InputPin, InputMode_TypeDef Input_Mode)
+{
+    GPIO_InitTypeDef gpioinitstruct = {0};
+
+    /* Enable the corresponding input Pin clock */
+    INPUTx_GPIO_CLK_ENABLE(InputPin);
+
+    /* Configure Push input pin as input */
+    gpioinitstruct.Pin = INPUT_PIN[InputPin];
+    gpioinitstruct.Pull = GPIO_NOPULL;
+    gpioinitstruct.Speed = GPIO_SPEED_FREQ_HIGH;
+
+    if (Input_Mode == INPUT_MODE_GPIO)
+    {
+        /* Configure input pin as input */
+        gpioinitstruct.Mode = GPIO_MODE_INPUT;
+        HAL_GPIO_Init(INPUT_PORT[InputPin], &gpioinitstruct);
+    }
+    else if (Input_Mode == INPUT_MODE_EXTI)
+    {
+        if (InputPin != INPUT_FACTORY)
+        {
+            /* Configure Joystick input pin as input with External interrupt, falling edge */
+            gpioinitstruct.Mode = GPIO_MODE_IT_FALLING;
+        }
+        else
+        {
+            /* Configure Key Push input pin as input with External interrupt, rising edge */
+            gpioinitstruct.Mode = GPIO_MODE_IT_RISING;
+        }
+        HAL_GPIO_Init(INPUT_PORT[InputPin], &gpioinitstruct);
+
+        /* Enable and set input EXTI Interrupt to the lowest priority */
+        HAL_NVIC_SetPriority((IRQn_Type)(INPUT_IRQn[InputPin]), 0x0F, 0);
+        HAL_NVIC_EnableIRQ((IRQn_Type)(INPUT_IRQn[InputPin]));
+    }
+}
+
+/**
+  * @brief  Returns the selected input state.
+  * @param  input: input to be checked.
+  *   This parameter can be one of the following values:
+  *     @arg BUTTON_TAMPER: Key/Tamper Push Button 
+  * @retval input state
+  */
+uint32_t BSP_Input_GetState(Input_TypeDef Input)
+{
+    return HAL_GPIO_ReadPin(INPUT_PORT[Input], INPUT_PIN[Input]);
 }
 
 #if 0

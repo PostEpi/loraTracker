@@ -76,7 +76,7 @@ struct ATCommand_s {
 #endif
 
 /* Private define ------------------------------------------------------------*/
-#define CMD_SIZE 128
+#define CMD_SIZE DATABASE_ELEMENT_DATA_SIZE+DATABASE_ELEMENT_DATA_SIZE
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -122,13 +122,17 @@ void LCMD_Process(void)
 #endif  
         if (/*(command[i] == '\r') || */(command[i] == '\n'))
         {
-            if (i != 0)
+            if (i != 0 && i < CMD_SIZE)
             {
                 if(parser_Wisol(command, i+1))
                 {   
                     // data has been sent to server through Lora network.
                     DEMD_IOcontrol(DEMD_REPORT_TO_SERVER_SUCCEED, NULL, 0, NULL, 0);
-                    deleteDB(db, &item);
+                    
+                    if (!isEmptydDB(db))
+                    {
+                        deleteDB(db, &item);
+                    }
                 }
 
                 DEBUG(ZONE_FUNCTION|ZONE_LORA, ("%s", command));
@@ -136,10 +140,10 @@ void LCMD_Process(void)
                 memset((void*)command, 0, CMD_SIZE);
             }
         }
-        else if (i == (CMD_SIZE - 1))
+        else if (i >= (CMD_SIZE - 1))
         {
             
-            DEBUG(ZONE_ERROR, ("LORA PARAM_OVERFLOW"));;
+            DEBUG(ZONE_ERROR, ("LCMD_Process : PARAM_OVERFLOW\r\n"));;
             i = 0;
             memset((void*)command, 0, CMD_SIZE);
         }
@@ -149,7 +153,7 @@ void LCMD_Process(void)
         }
     }
     
-    if(!isInProcess())
+    if(isTxReady() && !isInProcess())
     {
         if (!isEmptydDB(db) && selectDB(db, &item) == RQUEUE_OK)
         {
@@ -177,6 +181,10 @@ COM_StatusTypeDef LCMD_IOcontrol(LCOM_IOControlTypedef io, int *input, int insiz
             
             // notify error to the demd 
             DEMD_IOcontrol(DEMD_REPORT_TO_SERVER_FAILED, NULL, 0, NULL, 0);
+            break;
+        case LCOM_MODULE_TX_READY:
+            *output = isTxReady()? 1 : 0;
+            *outsize = sizeof(int);   
             break;
         default:
             ret = COM_PARAM_ERROR;

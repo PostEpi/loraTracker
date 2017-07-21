@@ -30,7 +30,7 @@ RQueue_StatusTypeDef updateDB(DB_TypeDef db, char *data, int size, int needack)
     }
     if(db >= DB_MAX_SIZE) 
     {
-        DEBUG(ZONE_ERROR, ("Error : There is no database name\r\n"))
+        DEBUG(ZONE_ERROR, ("Error : There is no database name\r\n"));
         return status;
     }
 
@@ -40,6 +40,14 @@ RQueue_StatusTypeDef updateDB(DB_TypeDef db, char *data, int size, int needack)
     {
         int limit = 100;
         element item;
+        int sizeOfdata = DATABASE_ELEMENT_DATA_SIZE;
+
+        if(size > DATABASE_ELEMENT_DATA_SIZE) 
+        {
+            DEBUG(ZONE_WARN, ("Warning : The data sent to DB is too large (%d), !!! ", size ));
+            size = DATABASE_ELEMENT_DATA_SIZE;
+        }
+
         memcpy(item.edata ,data, size);
         item.size = size;
         item.retcount = needack; 
@@ -52,7 +60,7 @@ RQueue_StatusTypeDef updateDB(DB_TypeDef db, char *data, int size, int needack)
         
         if(limit < 1) 
         {
-            DEBUG(ZONE_ERROR, ("Error : updateDB is failed !!! "))
+            DEBUG(ZONE_ERROR, ("Error : updateDB is failed !!! "));
         }
     }
     

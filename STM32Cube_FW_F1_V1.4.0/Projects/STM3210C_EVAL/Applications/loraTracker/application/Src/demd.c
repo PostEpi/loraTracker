@@ -11,6 +11,7 @@
 #include "bbox.h"
 #include "iotgps.h"
 #include "easyflash.h"
+#include "lcommand.h"
 
 #define DEMD_PROCESS_LOG_SIZE       4   
 #define SETTING_PERIOD_REPORT_CYCLE "period_report_cycle"
@@ -34,6 +35,7 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize);
 static int  getSecFromDateAndTime();
 //static void itohex(char *buf, int size, int value);
 static bool storeReportCycle(int value);
+static void requestGPSData();
 
 
 void DEMD_Init()
@@ -42,12 +44,20 @@ void DEMD_Init()
     
     // It brings dat from flash memory to set default value.
     easyflash_init();
+#ifdef DEMD_IOT_SK_TEST_SPEC
+    reportPeriodIndex = 0;
+#else    
     reportPeriodIndex = getReportCycleFromFlash();
+#endif    
     getFinalPositionFromFlash(&prevLatitude, &prevLongitude);
     
     // The report timer runs.
     TimerInit(&reportToserverTimer, OnReportToServerTimer);
-	TimerSetValue(&reportToserverTimer, getReportTime(reportPeriodIndex)); /* 1000ms */
+#ifdef DEMD_IOT_SK_TEST_SPEC
+	TimerSetValue(&reportToserverTimer, getReportTime(1)); /* 60000ms */
+#else
+	TimerSetValue(&reportToserverTimer, getReportTime(reportPeriodIndex)); 
+#endif
 	TimerStart(&reportToserverTimer);
     
     DEBUG(ZONE_INIT, ("-DEMD_Init prevLatitude=%f pevLongitude=%f\r\n", prevLatitude, prevLongitude));
@@ -56,6 +66,7 @@ void DEMD_Init()
 void DEMD_Process()
 {
     element item;
+    int portready = -1, sizeOfret;
     static char iotMessage[DEMD_IOT_MESSAGE_SIZE];
     static int iotSize = DEMD_IOT_MESSAGE_SIZE;
     
@@ -66,21 +77,28 @@ void DEMD_Process()
         DEBUG(ZONE_TRACE, ("DEMD_Process : %d, %d, %s\r\n", item.size, item.retcount, item.edata ));
         deleteDB(DEM, &item);
 
-        if(parseMessage(item.edata, item.size, iotMessage, &iotSize))
-        {
-            // it will send iotMessage to Lora Port. So Lora Port has sent it through Lora network.
-            // if sending it is successful, position of iotMessage is stored to flash.
-            if(updateDB(LOR, iotMessage, iotSize, 10) != RQUEUE_OK)
+        if(LCMD_IOcontrol(LCOM_MODULE_TX_READY, NULL, 0, &portready, &sizeOfret) == COM_OK)
+        { 
+            if(portready == 1 && parseMessage(item.edata, item.size, iotMessage, &iotSize))
             {
-                DEBUG(ZONE_ERROR, ("DEMD_Process : Update is failed to LOR @@@@ \r\n"));
-                return;
-            }
+                // it will send iotMessage to Lora Port. So Lora Port has sent it through Lora network.
+                // if sending it is successful, position of iotMessage is stored to flash.
+                if(updateDB(LOR, iotMessage, iotSize, 10) != RQUEUE_OK)
+                {
+                    DEBUG(ZONE_ERROR, ("DEMD_Process : Update is failed to LOR @@@@ \r\n"));
+                    return;
+                }
 
-            DEBUG(ZONE_FUNCTION, ("DEMD_Process : push datas. %s %d\r\n\r\n", item.edata, item.size));
+                DEBUG(ZONE_FUNCTION, ("DEMD_Process : push datas. %s %d\r\n\r\n", item.edata, item.size));
+            }
+            else 
+            {
+                DEBUG(ZONE_FUNCTION, ("\r\n DEMD_Process parseMessage %s %d\r\n\r\n", item.edata, item.size));
+            }
         }
         else 
         {
-            DEBUG(ZONE_FUNCTION, ("\r\n DEMD_Process parseMessage %s %d\r\n\r\n", item.edata, item.size));
+            DEBUG(ZONE_FUNCTION, ("\r\n DEMD_Process : wisol tx is not ready\r\n\r\n"));
         }
     }
     
@@ -207,13 +225,30 @@ static int getReportTime(int value)
         DEBUG(ZONE_ERROR, ("getReportTime : invalided value (%d)@@@@\r\n", value));
         return MIN1;
     }
+#ifdef DEMD_IOT_SK_TEST_SPEC	
+    else if(value == 0)
+    {
+        // To support SK iot spec
+        return 10000; // 10 secs
+
+    }
+#endif	
 
     return value*MIN1;
 }
 
+static void requestGPSData()
+{
+    GCMD_IOcontrol(GCOM_REPORT_REQUEST, NULL, 0, NULL, 0);
+}
+
 static void OnReportToServerTimer(void)
 {
-   	GCMD_IOcontrol(GCOM_REPORT_REQUEST, NULL, 0, NULL, 0);
+   	requestGPSData();
+
+#ifdef DEMD_IOT_SK_TEST_SPEC
+	TimerSetValue(&reportToserverTimer, getReportTime(reportPeriodIndex)); 
+#endif
 	TimerStart(&reportToserverTimer);
 }
 
@@ -221,6 +256,7 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
 {
     int count;
     char *pstr;
+    static int invalidedRetry = 0;
     static char commandbbox[BBOX_MESSAGE_SIZE];
 
     // parser data and make new message.
@@ -240,7 +276,7 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
             // backup data to make a message after getting gps data.
             memset(commandbbox, 0, BBOX_MESSAGE_SIZE);
             memcpy(commandbbox, pdata, psize);
-            GCMD_IOcontrol(GCOM_REPORT_REQUEST, NULL, 0, NULL, 0);
+            requestGPSData();
         }
 
         return false;
@@ -301,6 +337,8 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
         
         if(isbboxready() && isdataready()) 
         {
+            invalidedRetry = 0;
+
             reportType = IOT_TYPE_NONE;
 
             IotEvent_Typedef iotE;
@@ -322,9 +360,16 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
         }
         else
         {
-            // 
-            DEBUG(ZONE_ERROR, ("parseMessage : Error : GPS data is not valied. So try to get GPS data again @@@@\r\n"));
-            GCMD_IOcontrol(GCOM_REPORT_REQUEST, NULL, 0, NULL, 0);
+            // if(invalidedRetry < 5)
+            // {
+                DEBUG(ZONE_ERROR, ("parseMessage : Error : Bbox & GPS data is not valied. So try to get GPS data again @@@@\r\n"));
+                requestGPSData();
+            // } 
+            // else 
+            // {
+            //     invalidedRetry = 0;
+            //     DEBUG(ZONE_ERROR, ("parseMessage : Error : Bbox & GPS data is not valied.  To get GPS data is failed @@@@\r\n"));
+            // }
         }
     }
     else 
@@ -335,9 +380,15 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
         {
             fusedata(*pstr++);
         } while(count-- > 0);
-        
+
+#ifdef DEMD_IOT_SK_TEST_SPEC  
+        if(1)
+#else        
         if(isdataready())
+#endif
         {
+            invalidedRetry = 0;
+
             IotGPS_Typedef iot;
             iot.type = IOT_TYPE_GPSDATA;
             iot.version = BSP_GetAppVersion();
@@ -354,6 +405,23 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
             prevLongitude = iot.longitude;  
             
             return getIotGPSMessage(&iot, pout, poutsize);
+        }
+        else 
+        {
+            if(invalidedRetry < 20)
+            {
+                //DEBUG(ZONE_ERROR, ("demd : parseMessage : Error : GPS data is not valied. So try to get GPS data again @@@@\r\n"));
+                //DEBUG(ZONE_ERROR, ("GPS failed @@@@\r\n"));
+                requestGPSData();
+                invalidedRetry++;
+            } 
+            else 
+            {
+                invalidedRetry = 0;
+                //DEBUG(ZONE_ERROR, ("demd : parseMessage : Error : GPS data is not valied.  To get GPS data is failed @@@@\r\n"));
+                DEBUG(ZONE_ERROR, ("To get GPS data is failed @@@@\r\n"));
+
+            }
         }
     }
 

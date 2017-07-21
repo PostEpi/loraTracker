@@ -25,7 +25,7 @@ void displayTranferMessage(const char *data, int size)
            DEBUG(ZONE_FUNCTION, ("%c", value + 55));
          }
 
-                  value = (*data & 0xf);
+         value = (*data & 0xf);
 
          if( value < 0xa) {
            DEBUG(ZONE_FUNCTION, ("%c", value + 48));

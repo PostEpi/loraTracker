@@ -114,6 +114,21 @@ typedef enum
 } Output_TypeDef;
 #endif
 
+
+/**
+ * @brief BUTTON Types Definition
+ */
+typedef enum 
+{
+  INPUT_FACTORY = 0,
+} Input_TypeDef;
+
+typedef enum 
+{  
+  INPUT_MODE_GPIO = 0,
+  INPUT_MODE_EXTI = 1
+} InputMode_TypeDef;
+
 #if 0
 /**
  * @brief BUTTON Types Definition
@@ -323,6 +338,27 @@ typedef enum
 #define OUTPUTx_GPIO_CLK_DISABLE(__OUTPUTGPIO__)    (((__OUTPUTGPIO__) == OUTPUT_WKUP) WKUP_GPIO_CLK_DISBLE()  :\
                                                  ((__OUTPUTGPIO__) == OUTPUT_NRST) NRST_GPIO_CLK_DISABLE()  :\
                                                  ((__OUTPUTGPIO__) == OUTPUT_PRST) PRST_GPIO_CLK_DISABLE()  : 0 )
+
+/** @addtogroup Lora_EVAL_input
+  * @{
+  */  
+
+#define INPUTn                          1
+
+/**
+ * @brief input gpio
+ */
+
+
+#define FACTORY_INPUT_PIN                      GPIO_PIN_2             /* PB.02*/
+#define FACTORY_INPUT_GPIO_PORT                GPIOB
+#define FACTORY_INPUT_GPIO_CLK_ENABLE()        __HAL_RCC_GPIOB_CLK_ENABLE()
+#define FACTORY_INPUT_GPIO_CLK_DISABLE()       __HAL_RCC_GPIOB_CLK_DISABLE()
+#define FACTORY_INPUT_EXTI_IRQn                EXTI9_5_IRQn
+
+
+#define INPUTx_GPIO_CLK_ENABLE(__INPUT__)       do{if((__INPUT__) == INPUT_FACTORY) FACTORY_INPUT_GPIO_CLK_ENABLE(); else 0; } while(0);
+#define INPUTx_GPIO_CLK_DISABLE(__INPUT__)    (((__INPUT__) == INPUT_FACTORY) FACTORY_INPUT_GPIO_CLK_DISABLE();  : 0 )
 
 #endif
 
@@ -759,6 +795,8 @@ void                    BSP_GPS_HW_Reset(void);
 void                    BSP_Lora_HW_Reset(void);
 void                    BSP_Lora_Wakeup(void);
 void                    BSP_Delay_HW_Reset(void);
+
+void                    BSP_Input_Init(Input_TypeDef InputPin, InputMode_TypeDef Input_Mode);
 
 #if 0
 void                    BSP_PB_Init(Button_TypeDef Button, ButtonMode_TypeDef Button_Mode);

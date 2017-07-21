@@ -2,6 +2,8 @@
 #include <math.h>
 #include "circledistance.h"
 
+#define M_PI       3.14159265358979323846
+
 typedef struct _SMPTransferMeractorParam {
 	double		fAxis;    // Major Axis
 	double		fFlat;    // Flat
@@ -135,4 +137,23 @@ double GetDistance(double dLat1, double dLon1, double dLat2, double dLon2)
 
 	return dist;
 
+}
+
+double degreesToRadians(double degrees) {
+  return degrees * M_PI / 180;
+}
+
+double distanceInKmBetweenEarthCoordinates(double lat1, double lon1, double lat2, double lon2) {
+  double earthRadiusKm = 6371;
+
+  double dLat = degreesToRadians(lat2-lat1);
+  double dLon = degreesToRadians(lon2-lon1);
+
+  lat1 = degreesToRadians(lat1);
+  lat2 = degreesToRadians(lat2);
+
+  double a = sin(dLat/2) * sin(dLat/2) +
+          sin(dLon/2) * sin(dLon/2) * cos(lat1) * cos(lat2); 
+  double c = 2 * atan2(sqrt(a), sqrt(1-a)); 
+  return earthRadiusKm * c;
 }

@@ -61,7 +61,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define CMD_SIZE 128
+#define CMD_SIZE DATABASE_ELEMENT_DATA_SIZE
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -109,7 +109,7 @@ void ECMD_Process(void)
 
         if (/*(command[i] == '\r') || */(command[i] == '\n'))
         {
-            if (i != 0)
+            if (i != 0 && i < CMD_SIZE)
             {
 
                 if(i < BBOX_MESSAGE_SIZE) 
@@ -128,7 +128,7 @@ void ECMD_Process(void)
                 memset((void*)command, 0, CMD_SIZE);
             }
         }
-        else if (i == (CMD_SIZE - 1))
+        else if (i >= (CMD_SIZE - 1))
         {
             DEBUG(ZONE_TRACE, ("ECMD_Process : command bffer overflow = %s\r\n", command));
 

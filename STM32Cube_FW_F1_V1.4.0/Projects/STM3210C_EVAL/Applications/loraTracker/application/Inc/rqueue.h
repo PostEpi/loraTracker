@@ -41,11 +41,13 @@ typedef enum {
 		(__HANDLE__)->Lock = UNLOCKED; \
 	} while (0)
 
+#define DATABASE_ELEMENT_DATA_SIZE 		128
+
 typedef struct
 {
 	int retcount;
 	int size;
-	char edata[100];
+	char edata[DATABASE_ELEMENT_DATA_SIZE];
 } element;
 
 typedef struct rqueue

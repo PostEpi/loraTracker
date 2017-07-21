@@ -56,7 +56,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* enable debug zone */
-int DebugFlag = 0xf;
+int DebugFlag = 0x3;//0xf;
 
 /* UART handler declaration */
 UART_HandleTypeDef UartHandle;
@@ -243,7 +243,7 @@ int main(void)
      */
     HAL_Init();
 
-    /* Configure the system clock to 72 MHz */
+    /* Configure the system clock to 72 MH5z */
     SystemClock_Config();
 
     /* Initialize BSP Led for LED_RED */
@@ -261,12 +261,23 @@ int main(void)
     BSP_OUTGPIO_init(OUTPUT_LORA_POWER, GPIO_PIN_RESET);
     BSP_OUTGPIO_init(OUTPUT_LORA_RESET, GPIO_PIN_SET);
 #else
+    HAL_Delay(10);
     BSP_OUTGPIO_init(OUTPUT_WKUP, GPIO_PIN_SET);
     HAL_Delay(1);
     BSP_OUTGPIO_Low(OUTPUT_WKUP);
     
     BSP_OUTGPIO_init(OUTPUT_NRST, GPIO_PIN_SET);
     BSP_OUTGPIO_init(OUTPUT_PRST, GPIO_PIN_RESET);
+
+    /* Initialize BSP input pin */
+    BSP_Input_Init(INPUT_FACTORY, INPUT_MODE_GPIO);
+    if(BSP_Input_GetState(INPUT_FACTORY))
+    {
+        DebugFlag = 0xf;
+    }
+    
+    DebugFlag = 0xf;
+
 #endif
 
 #ifndef USE_DEBUGLOG_DRVIER
@@ -298,14 +309,14 @@ int main(void)
 #endif
 
     /* Output a message on Hyperterminal using printf function */
-    printf("\n\r *** Lora Board Start ***\n\r\n\r");
+    printf("\n\r *** Lora Board Start ver.%d***\n\r\n\r", BSP_GetAppVersion() );
 
     RTC_init();
     TIM_Init();
 
-	ECMD_Init();
-	LCMD_Init();
-	GCMD_Init();
+    ECMD_Init();
+    LCMD_Init();
+    GCMD_Init();
     DEMD_Init();
 
     BSP_LED_Off(LED_RED);
@@ -315,9 +326,9 @@ int main(void)
     while (1)
     {
         USER_Process();
-		ECMD_Process();
-		LCMD_Process();
-		GCMD_Process();
+        ECMD_Process();
+        LCMD_Process();
+        GCMD_Process();
         DEMD_Process();
     }
 }

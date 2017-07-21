@@ -77,7 +77,31 @@ struct ATCommand_s {
 #endif
 
 /* Private define ------------------------------------------------------------*/
-#define GPS_CMD_SIZE 100
+#define GPS_CMD_SIZE DATABASE_ELEMENT_DATA_SIZE
+
+static char staticHold[] =  { 0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x00, 0x03,
+                              0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x05, 0x00, 
+                              0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C, 0x01, 0x64, 0x3C, 
+                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+                              0x00, 0x00, 0xB0, 0x94};
+
+static char ana[] =         { 0xB5, 0x62, 0x06, 0x23, 0x28, 0x00, 0x00, 0x00, 0x4C, 0x66, 
+                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x16, 0x07, 0x00, 
+                              0x00, 0x00, 0x00, 0x00, 0x9B, 0x06, 0x00, 0x00, 0x00, 0x00, 
+                              0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 
+                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x29, 0xE0 };
+
+#if 0
+static char cog[] =         {0xB5, 0x62, 0x06, 0x17, 0x0C, 0x00, 0x20, 0x23, 0x00, 0x02, 
+                            0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x6F, 0x78};
+
+static char ubx_g7020_kt[] = {0xB5, 0x62, 0x06, 0x23, 0x28, 0x00, 0x00, 0x00, 0x4C, 0x66, 
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x14, 0x06, 0x00, 
+                            0x00, 0x00, 0x00, 0x00, 0xDC, 0x06, 0x00, 0x00, 0x00, 0x00, 
+                            0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x66, 0x02};                                                        
+
+#endif
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -106,9 +130,48 @@ void GCMD_Init(void)
 {
     gcom_Init();
     gcom_ReceiveInit();
+
+    GPRINTF(staticHold);
+    GPRINTF(staticHold);
+    GPRINTF(ana);
+    GPRINTF(ana);
+    //GPRINTF(cog);
+    //GPRINTF(ubx_g7020_kt);
 }
 
+typedef enum {
+    ON,
+    OFF,
+    TOGGLE
+} Led_ActionType;
 
+static void LedOnOffForGPS(Led_ActionType signal)
+{
+    static int count = 0;
+    if(signal == TOGGLE)
+    {
+        count++;
+        if(count < 256) 
+        {
+            BSP_LED_On(LED1);
+        }
+        else 
+        {
+            BSP_LED_Off(LED1);
+            if(count > 512) {
+                count = 0;
+            }
+        } 
+    }
+    else 
+    {
+        if(signal == ON) {
+            BSP_LED_On(LED1);
+        } else {
+            BSP_LED_Off(LED1);
+        }
+    }
+}
     
 void GCMD_Process(void)
 {
@@ -136,16 +199,16 @@ void GCMD_Process(void)
             DEBUG(ZONE_GPS, ("speed=%d bearing=%d\r\n", getSpeed(), getBearing()));
 
 			// When gps data is valided, the led flashes.
-            BSP_LED_Toggle(LED1);
+            LedOnOffForGPS(TOGGLE);
         }
         else 
         {
 			// When gps data is received, it turns on
-            BSP_LED_On(LED1);
+            LedOnOffForGPS(ON);
         }
         if (command[i] == '\n')
         {
-            if (i != 0)
+            if (i != 0 && i < GPS_CMD_SIZE)
             {
                 if (updateDB(GPS, command, i+1, 0) != RQUEUE_OK)
                 {
@@ -163,7 +226,7 @@ void GCMD_Process(void)
                         if(gcom_report_request) 
                         {
                             gcom_report_request = false;
-                            if(updateDB(DEM, command, i, 0) != RQUEUE_OK)
+                            if(updateDB(DEM, command, i+1, 0) != RQUEUE_OK)
                             {
                                 DEBUG(ZONE_ERROR, ("GCMD_Process : Update is failed to DEM\r\n"));
                             }
@@ -182,7 +245,7 @@ void GCMD_Process(void)
             i = 0;
             memset((void*)command, 0, GPS_CMD_SIZE);
             //com_error(AT_TEST_PARAM_OVERFLOW);
-            DEBUG(ZONE_ERROR, ("GPS PARAM_OVERFLOW"));
+            DEBUG(ZONE_ERROR, ("GCMD_Process : PARAM_OVERFLOW\r\n"));
         }
         else
         {

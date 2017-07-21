@@ -12,7 +12,7 @@
 #define WISOL_MAX_RESPONSE_TIME 50000   
 #define WISOL_RESPONSE_TIME     10000
 
-#define MODULE_RESPONSE_MAX 19
+#define MODULE_RESPONSE_MAX 20
 #define MODULE_RESPONSE_LEN 35
 
 static const uint8_t MODULE_RESPONSE[MODULE_RESPONSE_MAX][MODULE_RESPONSE_LEN] =
@@ -26,6 +26,7 @@ static const uint8_t MODULE_RESPONSE[MODULE_RESPONSE_MAX][MODULE_RESPONSE_LEN] =
         "CON_DOWN",
         "UNCON_DOWN",
         "JOIN_COMPLETE",
+        "FRAME_TYPE_JOIN_ACCEPT",
         "SEND",
         "RX1CH_OPEN",
         "RX2CH_OPEN",
@@ -48,6 +49,7 @@ typedef enum {
     CON_DOWN,
     UNCON_DOWN,
     JOIN_COMPLETE,
+    FRAME_TYPE_JOIN_ACCEPT,
     SEND,
     RX1CH_OPEN,
     RX2CH_OPEN,
@@ -99,6 +101,12 @@ static LRW_Command_TypeDef dataCmd;
 static LRW_Command_TypeDef *currentCmd = NULL;
 
 static TimerEvent_t responseTimer;
+static int factoryTest = 0;
+
+#ifdef DEMD_IOT_SK_TEST_SPEC
+static int sendSkiot = 0;
+static int successSkiot = 0; 
+#endif
 
 static void wakeup();
 static void reset();
@@ -115,18 +123,29 @@ void initWisol(callbackFunc cb)
     {
         callback = cb;
         wisolInit = false;
+#ifdef DEMD_IOT_SK_TEST_SPEC
+        reset();
+#else        
+        factoryTest = 1; //BSP_Input_GetState(INPUT_FACTORY);
+#endif
+        BSP_LED_On(LED2);
 
         // To check Lora's port and debug mode is off.
         memset(&dataCmd, 0, sizeof(LRW_Command_TypeDef));
+#ifdef DEMD_IOT_SK_TEST_SPEC     
+        strcpy(dataCmd.cmd, "LRW 50 1\r\n");
+#else
         strcpy(dataCmd.cmd, "LRW 50 0\r\n");
+#endif 
         dataCmd.sizeofcmd = strlen(dataCmd.cmd);
         dataCmd.noreset = true;
-        dataCmd.timeoutsec = WISOL_RESPONSE_TIME;
+        dataCmd.timeoutsec = 2000;//WISOL_RESPONSE_TIME;
         dataCmd.respAck = OK;
 
         // The first command is executed after a few seconds because Lora needs a intialization time.
         currentCmd = &dataCmd;
         responseTimerOn(dataCmd.timeoutsec);
+       
     }
 }
 
@@ -151,7 +170,14 @@ bool writeLRW(const char *msg, int size, int bypasscmd)
 
         if (size <= WISOL_USER_DATA_LIMIT && currentCmd == NULL)
         {
+#ifdef DEMD_IOT_SK_TEST_SPEC
+            sendSkiot++;
+            char *skmsg = "01234567890123456789012345678901234567890123456789012345678901234";
+            size = strlen(skmsg);
+            return sendBinaryTx(skmsg, size, OK); 
+#else           
             return sendBinaryTx(msg, size, UNCON_DOWN);
+#endif            
         }
         else
         {
@@ -175,6 +201,11 @@ bool writeLRW(const char *msg, int size, int bypasscmd)
     return false;
 }
 
+bool isTxReady()
+{
+    return wisolInit;
+}
+
 bool isInProcess()
 {
     return (currentCmd != NULL) ? true : false;
@@ -186,7 +217,7 @@ static void OnResponseEvent()
 
     if (currentCmd != NULL)
     {
-        if (currentCmd->timeoutsec == WISOL_RESPONSE_TIME)
+        if (currentCmd->timeoutsec <= WISOL_RESPONSE_TIME)
         {
             if (currentCmd->noreset)
             {
@@ -340,6 +371,7 @@ static bool sendBinaryTx(const char *msg, int size, Wisol_ResposeTypeDef resptyp
     // length
     *(cmd++) = size;
     memcpy(cmd, msg, size);
+   
 
     *(cmd + size) = '\r';     // CR
     *(cmd + size + 1) = '\n'; // LF
@@ -363,6 +395,8 @@ static bool send(LRW_Command_TypeDef *sendmsg)
 
     if (callback != NULL && sendmsg != NULL)
     {
+        BSP_LED_On(LED2);
+
         currentCmd = sendmsg;
         (*callback)(currentCmd->cmd, currentCmd->sizeofcmd);
         responseTimerOn(currentCmd->timeoutsec);
@@ -383,7 +417,20 @@ static void reset()
     BSP_Lora_HW_Reset();
 }
 
+#ifndef DEMD_IOT_SK_TEST_SPEC
+static void getRssi()
+{
+    strcpy(dataCmd.cmd, "LRW 4A\r\n");
+    dataCmd.sizeofcmd = strlen(dataCmd.cmd);
+    dataCmd.noreset = true;
+    dataCmd.timeoutsec = 2000;//WISOL_RESPONSE_TIME;
+    dataCmd.respAck = OK;
 
+    // The first command is executed after a few seconds because Lora needs a intialization time.
+    currentCmd = &dataCmd;
+    responseTimerOn(dataCmd.timeoutsec);
+}
+#endif
 
 static bool externalDevManage(const char *cmd, int sizeofextdev)
 {
@@ -509,7 +556,9 @@ static void rxmsgparser(const char *cmd, int size)
 static bool responseProcess(const int index, const char *cmd, int size)
 {
 // if it return true, the caller deletes the column in the database.
-
+#ifdef DEMD_IOT_SK_TEST_SPEC
+    static bool skiotpec = false;
+#endif
     static char rxmsg[RX_MSG_BUFFER];
     static int rxmsgcnt = 0;
     bool ret = false;
@@ -519,10 +568,19 @@ static bool responseProcess(const int index, const char *cmd, int size)
         DEBUG(ZONE_TRACE, ("OK received!!!\r\n"));
         if (currentCmd != NULL && currentCmd->respAck == OK)
         {
-            DEBUG(ZONE_FUNCTION, ("OK received. command done\r\n"));
  
+             // When the transmission is completed, it is led off.
+            BSP_LED_Off(LED2);
+
             responseTimerOff();
             currentCmd = NULL;
+
+#ifdef DEMD_IOT_SK_TEST_SPEC
+            DEBUG(ZONE_FUNCTION, ("OK received. try=%d, success=%d\r\n", sendSkiot, successSkiot));
+
+            successSkiot++;
+            ret = true;
+#endif
         }
         else
         {
@@ -553,6 +611,7 @@ static bool responseProcess(const int index, const char *cmd, int size)
         break;
     case READY:
         DEBUG(ZONE_TRACE, ("READY received!!!\r\n"));
+
         if (currentCmd != NULL && currentCmd->respAck == READY)
         {
             DEBUG(ZONE_FUNCTION, ("READY received and waiting for next command!!!\r\n"));
@@ -560,7 +619,16 @@ static bool responseProcess(const int index, const char *cmd, int size)
         break;
     case BUSY:
         DEBUG(ZONE_TRACE, ("BUSY received!!!\r\n"));
-#if 0        
+#ifdef DEMD_IOT_SK_TEST_SPEC
+        if(currentCmd != NULL)
+        {
+            BSP_LED_Off(LED2);
+
+            responseTimerOff();
+            currentCmd = NULL;
+        }
+#endif
+#if 0
         if(currentCmd != NULL)
         {
             DEBUG(ZONE_FUNCTION , ("BUSY received. timeout is 50sec !!!\r\n"));
@@ -599,12 +667,33 @@ static bool responseProcess(const int index, const char *cmd, int size)
             BSP_LED_Off(LED2);
 
             ret = true;
+
+#ifndef DEMD_IOT_SK_TEST_SPEC
+            if (factoryTest)
+            {
+                getRssi();
+            }
+#endif
+
         }
         // a mission is succeed
         break;
     case JOIN_COMPLETE:
-        DEBUG(ZONE_TRACE, ("JOIN_COMPLETE received!!!\r\n"));
+    case FRAME_TYPE_JOIN_ACCEPT:
+        DEBUG(ZONE_FUNCTION, ("JOIN_COMPLETE received!!!\r\n"));
+        responseTimerOff();
+        currentCmd = NULL;
         wisolInit = true;
+#ifdef DEMD_IOT_SK_TEST_SPEC
+        if(!skiotpec) 
+        {
+            skiotpec = true;
+            wisolInit = false;
+            reset();
+        }
+#endif
+
+
         break;
 
     case SEND:
@@ -637,7 +726,7 @@ static bool responseProcess(const int index, const char *cmd, int size)
         break;
     case WAKE_UP:
 		// When Lora wakes up, it turns on.
-        BSP_LED_On(LED2);
+        //BSP_LED_On(LED2);
         break;
     }
 

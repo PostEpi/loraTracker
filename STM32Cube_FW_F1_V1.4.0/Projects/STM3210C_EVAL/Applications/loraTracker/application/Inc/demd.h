@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #define DEMD_IOT_MESSAGE_SIZE       50
+//#define DEMD_IOT_SK_TEST_SPEC
 
 typedef enum {
     DEMD_OK = 0,

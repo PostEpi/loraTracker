@@ -44,4 +44,8 @@ inline double I_RAD2GPN( double rad ) { return rad * _DEGREE_PER_RADIAN; }
 
 double GetDistance(double dLat1, double dLon1, double dLat2, double dLon2);
 
+double degreesToRadians(double degrees);
+double distanceInKmBetweenEarthCoordinates(double lat1, double lon1, double lat2, double lon2);
+
+
 #endif

@@ -114,6 +114,7 @@ extern "C" {
 
 typedef void (*callbackFunc)(const char *cmd, int size); 
 void initWisol(callbackFunc cb);
+bool isTxReady();
 bool isInProcess();
 bool writeLRW(const char *msg, int size, int bypasscmd);
 bool parser_Wisol(char *cmd, int size);
