@@ -208,6 +208,23 @@ void gcom_Send(const char *format, ...)
     va_end(args);
 }
 
+
+void gcom_BinarySend(const char *cmd, int size)
+{
+    int i;
+
+    if (UartHandle.State == HAL_UART_STATE_TIMEOUT)
+    {
+        UartHandle.State = HAL_UART_STATE_READY;
+    }
+
+    for (i = 0; i < size; i++)
+    {
+        HAL_UART_Transmit(&UartHandle, (uint8_t *)&cmd[i], 1, 0xFFFF);
+    }
+    
+}
+
 HAL_StatusTypeDef gcom_ReceiveInit(void)
 {
     if (uart_context.RxState != HAL_UART_STATE_READY)

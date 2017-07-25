@@ -219,7 +219,7 @@ static void parsedata() {
 		//parse speed
 		// The knot (pronounced not) is a unit of speed equal to one nautical mile (1.852 km) per hour
 		res_fSpeed = string2float(tmp_words[7]);
-		res_fSpeed /= 1.852; // convert to km/h
+		res_fSpeed *= 1.852; // convert to km/h
 		// parse bearing
 		res_fBearing = string2float(tmp_words[8]);
 		// parse UTC date

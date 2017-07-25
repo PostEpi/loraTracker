@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#include "stm32f1xx.h"
 
 #define CID_SET_ACTIVATION                                      "30"
 #define CID_SET_ACTIVATION_OPTION1_OTAA                         "otaa"

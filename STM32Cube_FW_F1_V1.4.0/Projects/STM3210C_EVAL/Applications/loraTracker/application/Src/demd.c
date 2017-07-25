@@ -252,10 +252,19 @@ static void OnReportToServerTimer(void)
 	TimerStart(&reportToserverTimer);
 }
 
+static void evaluateGPS(char *pdata, int psize)
+{
+    int count = psize;
+    char *pstr = pdata;
+    do
+    {
+        fusedata(*pstr++);
+    } while(count-- > 0);
+}
+
 static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
 {
-    int count;
-    char *pstr;
+
     static int invalidedRetry = 0;
     static char commandbbox[BBOX_MESSAGE_SIZE];
 
@@ -328,13 +337,7 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
             return false;
         }
         
-        pstr = pdata;
-        count = psize;
-        do
-        {
-            fusedata(*pstr++);
-        } while(count-- > 0);
-        
+        evaluateGPS(pdata, psize);
         if(isbboxready() && isdataready()) 
         {
             invalidedRetry = 0;
@@ -374,13 +377,7 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
     }
     else 
     {
-        pstr = pdata;
-        count = psize;
-        do
-        {
-            fusedata(*pstr++);
-        } while(count-- > 0);
-
+        evaluateGPS(pdata, psize);
 #ifdef DEMD_IOT_SK_TEST_SPEC  
         if(1)
 #else        
@@ -401,6 +398,8 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
             iot.cumulativedistance = GetDistance(iot.latitude, iot.longitude, prevLatitude, prevLongitude);  
             iot.statusofcar = 1;
             
+            DEBUG(ZONE_FUNCTION, ("speed = %d, direction=%d\r\n",iot.speed , iot.direction));
+
             prevLatitude = iot.latitude;
             prevLongitude = iot.longitude;  
             
@@ -428,26 +427,25 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
     return false;
 }
 
-
-
-
 static int getSecFromDateAndTime(int year, int month, int day, int hour, int min, int sec )
 {
     char *week[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
     time_t user_time;
     struct tm user_stime;
     struct tm *ptr_stime;
+    
+    DEBUG(ZONE_FUNCTION, ("%d-%d-%d %d:%d:%d\r\n", year, month,  day, hour, min,  sec));
 
-#if 0
-   user_stime.tm_year   = year   -1900;   // cf :year after 1900
+#if 1
+//   user_stime.tm_year   = year - 1900;   // cf :year after 1900
+   user_stime.tm_year   = year + 100;   // cf :year after 1900
    user_stime.tm_mon    = month      -1;      // cf : mon start at 0
    user_stime.tm_mday   = day;
    user_stime.tm_hour   = hour;
    user_stime.tm_min    = min;
    user_stime.tm_sec    = sec;
    user_stime.tm_isdst  = 0;           // don't use summer time.
-#endif
-
+#else 
     user_stime.tm_year = 2017 - 1900; 
     user_stime.tm_mon = 6 - 1;        
     user_stime.tm_mday = 20;
@@ -455,6 +453,7 @@ static int getSecFromDateAndTime(int year, int month, int day, int hour, int min
     user_stime.tm_min = 12;
     user_stime.tm_sec = 55;
     user_stime.tm_isdst = 0; 
+#endif
 
     user_time = mktime(&user_stime);
     ptr_stime = localtime(&user_time);

@@ -117,6 +117,13 @@ void gcom_IoDeInit(void);
 void gcom_Send(const char *format, ...);
 
 /**
+ * @brief  Sends string included NULL on com port
+ * @param  String
+ * @retval None
+ */
+void gcom_BinarySend(const char *cmd, int size);
+
+/**
  * @brief  Checks if a new character has been received on com port
  * @param  None
  * @retval Returns SET if new character has been received on com port, RESET otherwise
@@ -144,6 +151,11 @@ void gcom_IRQHandler(void);
 #define GPRINTF(...)
 #endif
 
+#if 1
+#define GBPRINTF(Arg1, Arg2)     gcom_BinarySend(Arg1, Arg2)
+#else
+#define GBPRINTF(...)
+#endif
 
 #ifdef __cplusplus
 }

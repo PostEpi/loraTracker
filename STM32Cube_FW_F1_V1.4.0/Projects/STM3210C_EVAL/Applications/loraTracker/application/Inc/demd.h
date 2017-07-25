@@ -5,7 +5,9 @@
 extern "C" {
 #endif
 
-#define DEMD_IOT_MESSAGE_SIZE       50
+#include "wisol.h"
+
+#define DEMD_IOT_MESSAGE_SIZE       WISOL_USER_DATA_LIMIT
 //#define DEMD_IOT_SK_TEST_SPEC
 
 typedef enum {

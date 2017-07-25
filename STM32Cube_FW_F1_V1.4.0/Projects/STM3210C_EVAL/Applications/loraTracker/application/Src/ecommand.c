@@ -116,7 +116,7 @@ void ECMD_Process(void)
                 {
                     if(parse_cmd(command, i))
                     {
-                        EPRINTF("ok\r\n");
+                        EPRINTF("\r\nok\r\n");
                         
                         if (updateDB(DEM, command, i+1, 0) != RQUEUE_OK)
                         {
@@ -143,6 +143,7 @@ void ECMD_Process(void)
     
     while (!isEmptydDB(db) && selectDB(db, &item) == RQUEUE_OK)
     {
+        // it is to tranfer gps data. 
         DEBUG(ZONE_TRACE, ("ECMD_Process : %d, %d, %s\r\n", item.size, item.retcount, item.edata ))
         EPRINTF(item.edata);
         deleteDB(db, &item);

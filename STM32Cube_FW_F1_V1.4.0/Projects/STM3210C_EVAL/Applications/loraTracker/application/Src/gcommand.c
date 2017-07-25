@@ -79,17 +79,32 @@ struct ATCommand_s {
 /* Private define ------------------------------------------------------------*/
 #define GPS_CMD_SIZE DATABASE_ELEMENT_DATA_SIZE
 
+/*
+B5 62 06 24 24 00 FF FF 00 03 
+00 00 00 00 10 27 00 00 05 00 
+FA 00 FA 00 64 00 2C 01 64 3C 
+00 00 00 00 00 00 00 00 00 00 
+00 00 B0 94
+*/
 static char staticHold[] =  { 0xB5, 0x62, 0x06, 0x24, 0x24, 0x00, 0xFF, 0xFF, 0x00, 0x03,
                               0x00, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x05, 0x00, 
                               0xFA, 0x00, 0xFA, 0x00, 0x64, 0x00, 0x2C, 0x01, 0x64, 0x3C, 
                               0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
                               0x00, 0x00, 0xB0, 0x94};
 
+/*
+B5 62 06 23 28 00 00 00 4C 66 
+C0 00 00 00 00 00 03 16 07 00 
+00 00 00 00 9B 06 00 00 00 00 
+00 00 00 01 00 00 64 00 00 00 
+00 00 00 00 00 00 E9 E0
+*/
+
 static char ana[] =         { 0xB5, 0x62, 0x06, 0x23, 0x28, 0x00, 0x00, 0x00, 0x4C, 0x66, 
-                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x16, 0x07, 0x00, 
+                              0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x16, 0x07, 0x00, 
                               0x00, 0x00, 0x00, 0x00, 0x9B, 0x06, 0x00, 0x00, 0x00, 0x00, 
                               0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 
-                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x29, 0xE0 };
+                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xE9, 0xE0 };
 
 #if 0
 static char cog[] =         {0xB5, 0x62, 0x06, 0x17, 0x0C, 0x00, 0x20, 0x23, 0x00, 0x02, 
@@ -131,10 +146,6 @@ void GCMD_Init(void)
     gcom_Init();
     gcom_ReceiveInit();
 
-    GPRINTF(staticHold);
-    GPRINTF(staticHold);
-    GPRINTF(ana);
-    GPRINTF(ana);
     //GPRINTF(cog);
     //GPRINTF(ubx_g7020_kt);
 }
@@ -179,6 +190,7 @@ void GCMD_Process(void)
     static unsigned i = 0;
     static char *prmc = NULL, *pret = NULL;
     static char ch;
+    static int Needprecise = 0;
 
     /* Process all commands */
     while (gIsNewCharReceived() == SET)
@@ -208,6 +220,25 @@ void GCMD_Process(void)
         }
         if (command[i] == '\n')
         {
+                      
+            if(Needprecise > 30 && Needprecise < 35) 
+            {
+                
+                if((Needprecise % 5) == 1) {
+                  DEBUG(ZONE_FUNCTION, ("GCMD_Process : GPS staticHold %d\r\n", Needprecise ));
+                  GBPRINTF(staticHold, 44);
+                  GBPRINTF(staticHold, 44);
+                }
+
+                if((Needprecise % 5) == 3) {
+                  DEBUG(ZONE_FUNCTION, ("GCMD_Process : GPS ana %d\r\n", Needprecise ));
+                  GBPRINTF(ana, 48);
+                  GBPRINTF(ana, 48);
+                }
+               
+            }
+            Needprecise++;
+            
             if (i != 0 && i < GPS_CMD_SIZE)
             {
                 if (updateDB(GPS, command, i+1, 0) != RQUEUE_OK)
@@ -239,6 +270,8 @@ void GCMD_Process(void)
                 memset((void*)command, 0, GPS_CMD_SIZE);
                 return;
             }
+
+
         }
         else if (i > (GPS_CMD_SIZE - 1))
         {
@@ -253,6 +286,7 @@ void GCMD_Process(void)
         }
 #endif        
     }
+
 }
 
 
