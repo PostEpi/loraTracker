@@ -85,7 +85,7 @@ typedef struct
 
 /* Iot Tracker version number */
 #define __BOOTLOADER_VERSION        (1)
-#define __APPLICATION_VERSION       (3)
+#define __APPLICATION_VERSION       (4)
 
 #if 0
 __APPLICATION_VERSION: application version history.
