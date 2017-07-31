@@ -8,7 +8,8 @@ extern "C" {
 #include "wisol.h"
 
 #define DEMD_IOT_MESSAGE_SIZE       WISOL_USER_DATA_LIMIT
-//#define DEMD_IOT_SK_TEST_SPEC
+#define DEMD_IOT_SK_TEST_SPEC
+//#define DEMO_IOT_DONTCARE_GPSDATA
 
 typedef enum {
     DEMD_OK = 0,

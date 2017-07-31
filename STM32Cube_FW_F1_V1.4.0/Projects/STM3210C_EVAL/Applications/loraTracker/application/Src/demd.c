@@ -380,8 +380,12 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
         evaluateGPS(pdata, psize);
 #ifdef DEMD_IOT_SK_TEST_SPEC  
         if(1)
+#else
+#ifdef DEMO_IOT_DONTCARE_GPSDATA
+        if(1)
 #else        
         if(isdataready())
+#endif        
 #endif
         {
             invalidedRetry = 0;
@@ -434,7 +438,7 @@ static int getSecFromDateAndTime(int year, int month, int day, int hour, int min
     struct tm user_stime;
     struct tm *ptr_stime;
     
-    DEBUG(ZONE_FUNCTION, ("%d-%d-%d %d:%d:%d\r\n", year, month,  day, hour, min,  sec));
+    DEBUG(ZONE_TRACE, ("%d-%d-%d %d:%d:%d\r\n", year, month,  day, hour, min,  sec));
 
 #if 1
 //   user_stime.tm_year   = year - 1900;   // cf :year after 1900
@@ -456,6 +460,8 @@ static int getSecFromDateAndTime(int year, int month, int day, int hour, int min
 #endif
 
     user_time = mktime(&user_stime);
+    user_time += 32400; // korea time zone.
+
     ptr_stime = localtime(&user_time);
 
 #if 0

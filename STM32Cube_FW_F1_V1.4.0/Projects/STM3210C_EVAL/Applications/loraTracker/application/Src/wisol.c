@@ -172,7 +172,8 @@ bool writeLRW(const char *msg, int size, int bypasscmd)
         {
 #ifdef DEMD_IOT_SK_TEST_SPEC
             sendSkiot++;
-            char *skmsg = "01234567890123456789012345678901234567890123456789012345678901234";
+            //char *skmsg = "01234567890123456789012345678901234567890123456789012345678901234";
+            char *skmsg = "0";
             size = strlen(skmsg);
             return sendBinaryTx(skmsg, size, OK); 
 #else           
