@@ -135,11 +135,15 @@ void initWisol(callbackFunc cb)
 #ifdef DEMD_IOT_SK_TEST_SPEC     
         strcpy(dataCmd.cmd, "LRW 50 1\r\n");
 #else
+#ifdef DEMO_IOT_DONTCARE_GPSDATA
+        strcpy(dataCmd.cmd, "LRW 50 1\r\n");
+#else
         strcpy(dataCmd.cmd, "LRW 50 0\r\n");
+#endif
 #endif 
         dataCmd.sizeofcmd = strlen(dataCmd.cmd);
         dataCmd.noreset = true;
-        dataCmd.timeoutsec = 2000;//WISOL_RESPONSE_TIME;
+        dataCmd.timeoutsec = WISOL_RESPONSE_TIME;
         dataCmd.respAck = OK;
 
         // The first command is executed after a few seconds because Lora needs a intialization time.
@@ -173,7 +177,7 @@ bool writeLRW(const char *msg, int size, int bypasscmd)
 #ifdef DEMD_IOT_SK_TEST_SPEC
             sendSkiot++;
             //char *skmsg = "01234567890123456789012345678901234567890123456789012345678901234";
-            char *skmsg = "0";
+            char *skmsg = "01234";
             size = strlen(skmsg);
             return sendBinaryTx(skmsg, size, OK); 
 #else           

@@ -193,23 +193,28 @@ static void USER_Process()
                         }
                         break;
                     case 1:
-                        if(buffer[cmdLength] == '0' || buffer[cmdLength] == '1')
-                        {
-                            if(buffer[cmdLength] == '0')  DebugFlag = 0;
-                            else DebugFlag = 1<<9;
-                        }
+                        DEBUG(ZONE_TRACE, (" it has been sent to lora(%s)", buffer[cmdLength]));
+                        //updateDB(LOR, buffer, msgcount, 0xff);
+                        LBPRINTF(&buffer[cmdLength], msgcount-cmdLength);
+
+                        // if(buffer[cmdLength] == '0' || buffer[cmdLength] == '1')
+                        // {
+                        //     if(buffer[cmdLength] == '0')  DebugFlag = 0;
+                        //     else DebugFlag = 1<<9;
+                        // }
                         break;
                     }
                 }
             }
+#ifdef DEMO_IOT_DONTCARE_GPSDATA            
             // it's passed to the lora;
             if(bfound == false) 
             {
-                DEBUG(ZONE_TRACE, ("USER_Process : it has been sent to lora(%s)", buffer));
+                DEBUG(ZONE_TRACE, ("DONTCAREGPS : it has been sent to lora(%s)", buffer));
                 //updateDB(LOR, buffer, msgcount, 0xff);
                 LBPRINTF(buffer, msgcount);
             }
-
+#endif
             memset(buffer, 0, USER_PROCESS_CHAR_BUFFER_SIZE);
             msgcount = 0; 
         }
