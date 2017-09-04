@@ -85,7 +85,7 @@ typedef struct
 
 /* Iot Tracker version number */
 #define __BOOTLOADER_VERSION        (1)
-#define __APPLICATION_VERSION       (4)
+#define __APPLICATION_VERSION       (3)
 
 #if 0
 __APPLICATION_VERSION: application version history.
@@ -522,18 +522,15 @@ void BSP_Booting_Reset(void)
 
 void BSP_HW_Reset(void)
 {
-    BSP_OUTGPIO_Low(OUTPUT_NRST);
+    BSP_OUTGPIO_High(OUTPUT_PRST);
+    BSP_Lora_HW_Reset();
     HAL_NVIC_SystemReset();  
 }
 
-void BSP_GPS_HW_Reset(void)
+void BSP_Delay_HW_Reset(void)
 {
-#if 0    
-    BSP_OUTGPIO_High(OUTPUT_PRST);
-    HAL_Delay(10);
-    BSP_OUTGPIO_Low(OUTPUT_PRST);
-#endif  
-    HAL_NVIC_SystemReset();  
+    HAL_Delay(5000);
+    BSP_HW_Reset();
 }
 
 void BSP_Lora_HW_Reset(void)
@@ -550,12 +547,6 @@ void BSP_Lora_Wakeup(void)
     BSP_OUTGPIO_Low(OUTPUT_WKUP);
 }
 
-void BSP_Delay_HW_Reset(void)
-{
-    HAL_Delay(3000);
-    BSP_Lora_HW_Reset();
-    BSP_HW_Reset();
-}
 
 
 /**

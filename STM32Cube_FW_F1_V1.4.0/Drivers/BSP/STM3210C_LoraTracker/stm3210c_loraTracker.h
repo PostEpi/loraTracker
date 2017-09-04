@@ -791,7 +791,6 @@ void                    BSP_Download_Reset(void);
 void                    BSP_Booting_Reset(void);
 
 void                    BSP_HW_Reset(void);
-void                    BSP_GPS_HW_Reset(void);
 void                    BSP_Lora_HW_Reset(void);
 void                    BSP_Lora_Wakeup(void);
 void                    BSP_Delay_HW_Reset(void);

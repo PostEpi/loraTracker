@@ -6,9 +6,10 @@
 #include "debug.h"
 
 
+
 static	bool		bFlagRead,					// flag used by the parser, when a valid sentence has begun
 					bFlagDataReady;				// valid BBox fix and data available, user can call reader functions
-static	char		words[7][10],				//	hold parsed words for one given BBox sentence
+static	char		words[MAX_SIZE_OF_BBOX_ROW][MAX_SIZE_OF_BBOX_COLUME+1],		//	hold parsed words for one given BBox sentence
 					szChecksum[15];				//	hold the received checksum for one given BBox sentence
 static  char		usermsg[BBOX_MESSAGE_SIZE];	//  hold the user message
 
@@ -22,13 +23,18 @@ static 	bool 		bUserMessageCks ;			// we start cutting the receivced user messag
 static	int			nWordIdx ,					// the current word in a sentence
 					nPrevIdx,					// last character index where we did a cut
 					nNowIdx ;					// current character index
-	
+
+#define 			RES_DATA_FIELD_COUNT		7	
 // globals to store parser results
+static 	char		res_cServiceCode;			// service code
 static	char		res_cManufacture;			// manufacture
 static	char		res_cEvent;					// Event
-static  short       res_sBattery;               // battery status
+static 	double 		res_EventInfo;				// Event Information
+static  float      	res_Battery;                // battery status
+static  char		res_Temperature;			// temperature
+static 	char    	res_sSerialNum[16];			// blox box serial number
 
-
+static  int			res_DataFieldMaxSize[RES_DATA_FIELD_COUNT] = {3, 3, 3, 16, 16, 3, 16}; // service, manufacture, event, event info, battery, temperatrue. black box serial
 #if 0
 /*
  * returns base-16 value of chars '0'-'9' and 'A'-'F';
@@ -79,6 +85,22 @@ float string2float(char* s) {
 }
 #endif
 
+static bool IsdataValided()
+{
+	for(int i = 0 ; i < RES_DATA_FIELD_COUNT ; i++)
+	{
+		if(strlen(words[i+1]) > res_DataFieldMaxSize[i])
+		{
+			DEBUG(ZONE_ERROR, ("IsdataValided : Error : argument overflow @@@ \r\n"));
+
+			return false;
+		}
+	}
+
+	return true;
+}
+
+
 static bool parsedata() 
 {
    	int received_cks = 16*digit2dec(szChecksum[0]) + digit2dec(szChecksum[1]);
@@ -90,23 +112,98 @@ static bool parsedata()
 		return false;
 	}
 
+#if 0
 	if (strstr(words[0], BBOX_STX_BERDP) != NULL) {
 		// parse time
-		res_cManufacture = digit2dec(words[1][0]) * 10 + digit2dec(words[1][1]);
-		res_cEvent = digit2dec(words[2][0]) * 10 + digit2dec(words[2][1]);
-        res_sBattery = (short)(string2float(words[3]) * 5) ;
-		// data ready
+		// res_cManufacture = digit2dec(words[1][0]) * 10 + digit2dec(words[1][1]);
+		// res_cEvent = digit2dec(words[2][0]) * 10 + digit2dec(words[2][1]);
+        // res_sBattery = (short)(string2float(words[3]) * 5) ;
+		// // data ready
+		// bFlagDataReady = true;
+
+
 		bFlagDataReady = true;
 
         return true;
 	}
+#endif
+
 	if (strstr(words[0], BBOX_STR_BURDP) != NULL) {
+		if(IsdataValided() == false)
+		{
+			// data overflow.... 
+			return false;
+		}
+
+		int value, size;
+		if(Str2Int( words[1], &value) == 0)
+		{
+			DEBUG(ZONE_ERROR, ("servie code = %d\r\n", value));
+			return false;
+		}
+		res_cServiceCode = value;
+
+		if(Str2Int( words[2], &value) == 0)
+		{
+			DEBUG(ZONE_ERROR, ("manufacture code = %d\r\n", value));
+			return false;
+		}
+		res_cManufacture = value;
+
+		if(Str2Int( words[3], &value) == 0)
+		{
+			DEBUG(ZONE_ERROR, ("event code = %d\r\n", value));
+			return false;
+		}
+		res_cEvent = value;
+
+		// checking data integrity for event additinal information .
+		size = strlen(words[4]);
+		for(value = 0; value < size; value++)
+		{
+            char c = words[4][value];
+			if(ISVALIDDEC(c) == false)
+			{
+				if (c == '-') continue;
+				if (c == '+') continue;
+				if (c == '.') continue;
+				DEBUG(ZONE_ERROR, ("event additinal code = %d\r\n", c));
+				return false; 
+			}
+		}
+		sscanf(words[4], "%f", &res_EventInfo);		// event additinal information
+
+		// checking data integrity for battery level
+		size = strlen(words[5]);
+		for(value = 0; value < size; value++)
+		{
+            char c = words[5][value];
+			if(ISVALIDDEC(c) == false)
+			{
+				if (c == '-') continue;
+				if (c == '+') continue;
+				if (c == '.') continue;
+				DEBUG(ZONE_ERROR, ("battery = %d\r\n", c));
+				return false; 
+			}
+		}
+		res_Battery 	= string2float(words[5]);  	// battery level.
+		
+		if(Str2Int( words[6], &value) == 0)
+		{
+			DEBUG(ZONE_ERROR, ("temperature = %d\r\n", value));
+			return false;
+		}
+		res_Temperature = value;
+		
+		memcpy(res_sSerialNum, words[7], MAX_SIZE_OF_BBOX_COLUME);	
+
 		// data ready
 		bFlagDataReady = true;
 
         return true;
 	}
-	if (strstr(words[0], BBOX_STX_BDRDP) != NULL) {
+	else if (strstr(words[0], BBOX_STX_BDRDP) != NULL) {
 		// data ready
 		bFlagDataReady = true;
 
@@ -123,7 +220,7 @@ bool parsebbox(const char *pdata, int psize)
     int bufsize = psize;
     char c;
 
-    if(pdata == NULL || psize <= 0) 
+    if(pdata == NULL || psize == 0 || psize > BBOX_MESSAGE_SIZE) 
     {
         return false;
     }
@@ -195,9 +292,9 @@ bool parsebbox(const char *pdata, int psize)
                 else nNowIdx++;
             }
 
-			if(nNowIdx > BBOX_MESSAGE_SIZE)
+			if(nWordIdx >= MAX_SIZE_OF_BBOX_ROW || ((nNowIdx - nPrevIdx) > MAX_SIZE_OF_BBOX_COLUME))
 			{
-				
+				DEBUG(ZONE_ERROR, ("parsebbox : Error : Message is invalied \r\n"));
 				return false;
 			}	
         } while( bufsize-- > 0);			
@@ -224,6 +321,12 @@ int getUserMessage(char *buf, int size)
 	return max;
 }
 
+
+char getServiceCode()
+{
+	return res_cServiceCode;
+}
+
 char getbboxManufacture()
 {
     return res_cManufacture;
@@ -234,7 +337,22 @@ char getbboxEvent()
     return res_cEvent;
 }
 
-short getbboxBattery() 
+double getbboxEventInfo()
+{   
+    return res_EventInfo;
+}
+
+float getbboxBattery()
+{   
+    return res_Battery;
+}
+
+char getbboxTemperature() 
 {
-    return res_sBattery;
+    return res_Temperature;
+}
+
+const char* getbboxSerial()
+{
+	return res_sSerialNum;
 }

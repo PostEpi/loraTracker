@@ -59,6 +59,7 @@ extern "C" {
 
 typedef enum {
     GCOM_REPORT_REQUEST = 0,
+    GCOM_REPORT_DISTANCE_BETWEEN_GPS,
 } GCOM_IOControlTypedef;
 
 /* Exported constants --------------------------------------------------------*/
