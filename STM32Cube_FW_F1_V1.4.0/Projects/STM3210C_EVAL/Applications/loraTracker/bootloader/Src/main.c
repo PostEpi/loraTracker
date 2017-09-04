@@ -39,6 +39,7 @@
 #include "main.h"
 #include "menu.h"
 
+
 /** @addtogroup STM32F1xx_IAP_Main
   * @{
   */
@@ -69,6 +70,8 @@ static void EXT_Init(void);
 static void IAP_Init(void);
 void SystemClock_Config(void);
 
+//#define BOOT_NO_SECURITY             
+
 /**
   * @brief  Main program
   * @param  None
@@ -76,22 +79,39 @@ void SystemClock_Config(void);
   */
 int main(void)
 {
-
+    bool bSecurityOK = true;
     /* Test if user code is programmed starting from address "APPLICATION_ADDRESS" */
-#if 1
-    if(!BSP_IsDownloadModeActivated())
+#ifndef BOOT_NO_SECURITY        
+    if(cryptoCheck() == 1)
+#else 
+     if(1)
+#endif
     {
-        if (((*(__IO uint32_t *)APPLICATION_ADDRESS) & 0x2FFE0000) == 0x20000000)
+        if(!BSP_IsDownloadModeActivated())
         {
-             /* Jump to user application */
-             JumpAddress = *(__IO uint32_t *)(APPLICATION_ADDRESS + 4);
-             JumpToApplication = (pFunction)JumpAddress;
-             /* Initialize user application's Stack Pointer */
-             __set_MSP(*(__IO uint32_t *)APPLICATION_ADDRESS);
-             JumpToApplication();
+            if (((*(__IO uint32_t *)APPLICATION_ADDRESS) & 0x2FFE0000) == 0x20000000)
+            {
+                 /* Jump to user application */
+                 JumpAddress = *(__IO uint32_t *)(APPLICATION_ADDRESS + 4);
+                 JumpToApplication = (pFunction)JumpAddress;
+                 /* Initialize user application's Stack Pointer */
+                 __set_MSP(*(__IO uint32_t *)APPLICATION_ADDRESS);
+                 JumpToApplication();
+            }
         }
     }
-#endif
+    else 
+    {
+      
+        if (((*(__IO uint32_t *)APPLICATION_ADDRESS) & 0xFFFFFFFF) == 0xFFFFFFFF)
+        {
+            // If the application memory area is 0xffffffff when security fails, 
+            // the application has never been downloaded before. 
+            // You have an opportunity to download the application.
+        }
+        else
+            bSecurityOK = false;
+    }
     
     /* STM32F107xC HAL library initialization:
        - Configure the Flash prefetch
@@ -139,6 +159,16 @@ int main(void)
         BSP_LED_Toggle(LED_RED);
         BSP_LED_On(LED_GREEN);
 
+#ifndef BOOT_NO_SECURITY        
+        if(bSecurityOK == false)
+        {
+            //BSP_Appcation_Format();
+            Serial_PutString(&UartHandle, (uint8_t *)"Security failed\r\n");
+            while(1);
+              
+        }
+#endif
+        
 #if 1
         // sample code for externel uart (blackbox)
         //HAL_UART_Transmit(&ExUartHandle, msg, sizeof(msg), 0xffffffff);

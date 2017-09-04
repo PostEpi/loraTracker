@@ -238,7 +238,6 @@ void lcom_BinarySend(const char *cmd, int size)
     {
         HAL_UART_Transmit(&UartHandle, (uint8_t *)&cmd[i], 1, 0xFFFF);
     }
-    
 }
 
 HAL_StatusTypeDef lcom_ReceiveInit(void)

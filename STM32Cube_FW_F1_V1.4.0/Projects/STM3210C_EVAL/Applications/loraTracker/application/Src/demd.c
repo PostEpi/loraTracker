@@ -12,6 +12,7 @@
 #include "iotgps.h"
 #include "easyflash.h"
 #include "lcommand.h"
+#include "carstatus.h"
 
 #define DEMD_PROCESS_LOG_SIZE       4   
 #define SETTING_PERIOD_REPORT_CYCLE "period_report_cycle"
@@ -21,16 +22,20 @@
 static TimerEvent_t reportToserverTimer;
 static int reportPeriodIndex = 0;
 static IOT_MessageTypeDef reportType = IOT_TYPE_NONE;
+static bool proceesOnByTimer = false;
 
 char log[DEMD_PROCESS_LOG_SIZE*2];
 static float prevLatitude = 0.0;
 static float prevLongitude = 0.0;
+static int prevSpeed = 0;
+static bool carStatusStop = false;
 
 static int getReportCycleFromFlash();
 static bool getFinalPositionFromFlash(float *Latitude, float *Longitude);
 static bool setFinalPositionToFlash(float Latitude, float Longitude);
 static int  getReportTime(int value);
-static void OnReportToServerTimer(void);
+static void OnDemdTimerEvent(void);
+static void demdProcessTimerStart(int value);
 static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize);
 static int  getSecFromDateAndTime();
 //static void itohex(char *buf, int size, int value);
@@ -40,25 +45,44 @@ static void requestGPSData();
 
 void DEMD_Init()
 {
+#ifdef DEMO_IOT_RF_TX_MODE_FOR_MASSPRODUCT
+    DEBUG(ZONE_INIT, ("+DEMD_Init DEMO_IOT_RF_TX_MODE_FOR_MASSPRODUCT\r\n"));
+#endif
+#ifdef DEMO_IOT_RF_RX_MODE_FOR_MASSPRODUCT
+    DEBUG(ZONE_INIT, ("+DEMD_Init DEMO_IOT_RF_RX_MODE_FOR_MASSPRODUCT\r\n"));
+#endif
+#ifdef DEMO_IOT_DONTCARE_GPSDATA
+    DEBUG(ZONE_INIT, ("+DEMD_Init DEMO_IOT_DONTCARE_GPSDATA\r\n"));
+#endif
+#ifdef DEMD_IOT_SK_PREPARE_SPEC
+    DEBUG(ZONE_INIT, ("+DEMD_Init DEMD_IOT_SK_PREPARE_SPEC\r\n"));
+#endif
+
+#ifdef DEMD_IOT_SK_TEST_SPEC
+    DEBUG(ZONE_INIT, ("+DEMD_Init DEMD_IOT_SK_TEST_SPEC\r\n"));
+#else
     DEBUG(ZONE_INIT, ("+DEMD_Init\r\n"));
-    
+#endif    
     // It brings dat from flash memory to set default value.
     easyflash_init();
-#ifdef DEMD_IOT_SK_TEST_SPEC
-    reportPeriodIndex = 0;
-#else    
     reportPeriodIndex = getReportCycleFromFlash();
-#endif    
     getFinalPositionFromFlash(&prevLatitude, &prevLongitude);
     
+
+    //storeReportCycle(1);
+	// If the server sets the transmission period to 255, iotGPS should not transmit data.
+    if(reportPeriodIndex == 255)
+    {
+        DEBUG(ZONE_INIT, ("-DEMD_Init : DEMD process is disabled\r\n"));    
+        return;  
+    }
+
     // The report timer runs.
-    TimerInit(&reportToserverTimer, OnReportToServerTimer);
-#ifdef DEMD_IOT_SK_TEST_SPEC
-	TimerSetValue(&reportToserverTimer, getReportTime(1)); /* 60000ms */
-#else
-	TimerSetValue(&reportToserverTimer, getReportTime(reportPeriodIndex)); 
-#endif
-	TimerStart(&reportToserverTimer);
+    TimerInit(&reportToserverTimer, OnDemdTimerEvent);
+    demdProcessTimerStart(reportPeriodIndex);
+
+    // roadpia specification.
+    CarStatus_Init();
     
     DEBUG(ZONE_INIT, ("-DEMD_Init prevLatitude=%f pevLongitude=%f\r\n", prevLatitude, prevLongitude));
 }
@@ -66,43 +90,79 @@ void DEMD_Init()
 void DEMD_Process()
 {
     element item;
-    int portready = -1, sizeOfret;
+    int loraReady = -1, sizeOfret = 1;
     static char iotMessage[DEMD_IOT_MESSAGE_SIZE];
-    static int iotSize = DEMD_IOT_MESSAGE_SIZE;
+    int iotSize = DEMD_IOT_MESSAGE_SIZE;
     
+    if(reportPeriodIndex == 255)
+    {
+        // if it's 255,  the process of data transmission to the server is stopped.
+        // But black box may try to pass the black box information to the server, 
+        // So if there is data in the database, remove it to prevent buffer overflow.
+        if (!isEmptydDB(DEM) && selectDB(DEM, &item) == RQUEUE_OK)
+        {
+            DEBUG(ZONE_TRACE, ("DEMD_Process : remove data in DB in 255\r\n"));
+            deleteDB(DEM, &item);
+        }
+    
+        return;  
+    }
+
     //DEBUG(ZONE_FUNCTION, ("+DEMD_Process\r\n"));
 
+#ifndef DEMD_NO_PROCESS_BY_TIMER
+    // The process of DEMOD has to be scheduled by timer setting.
+    if(proceesOnByTimer == false && reportPeriodIndex)
+        return;
+
+#endif
+    
     if (!isEmptydDB(DEM) && selectDB(DEM, &item) == RQUEUE_OK)
     {
+#ifndef DEMD_NO_PROCESS_BY_TIMER
+        proceesOnByTimer = false;
+#endif
+
         DEBUG(ZONE_TRACE, ("DEMD_Process : %d, %d, %s\r\n", item.size, item.retcount, item.edata ));
         deleteDB(DEM, &item);
+        
+#ifdef DEMO_IOT_RF_TX_MODE_FOR_MASSPRODUCT
+        return;
+#endif
+#ifdef DEMO_IOT_RF_RX_MODE_FOR_MASSPRODUCT
+        return;
+#endif
 
-        if(LCMD_IOcontrol(LCOM_MODULE_TX_READY, NULL, 0, &portready, &sizeOfret) == COM_OK)
-        { 
-            if(portready == 1 && parseMessage(item.edata, item.size, iotMessage, &iotSize))
-            {
-                // it will send iotMessage to Lora Port. So Lora Port has sent it through Lora network.
-                // if sending it is successful, position of iotMessage is stored to flash.
-                if(updateDB(LOR, iotMessage, iotSize, 10) != RQUEUE_OK)
-                {
-                    DEBUG(ZONE_ERROR, ("DEMD_Process : Update is failed to LOR @@@@ \r\n"));
-                    return;
-                }
-
-                DEBUG(ZONE_FUNCTION, ("DEMD_Process : push datas. %s %d\r\n\r\n", item.edata, item.size));
-            }
-            else 
-            {
-                DEBUG(ZONE_FUNCTION, ("\r\n DEMD_Process parseMessage %s %d\r\n\r\n", item.edata, item.size));
-            }
-        }
-        else 
+        if(parseMessage(item.edata, item.size, iotMessage, &iotSize))
         {
-            DEBUG(ZONE_FUNCTION, ("\r\n DEMD_Process : wisol tx is not ready\r\n\r\n"));
+            // is Lora ready to be able to send a message?
+            if(LCMD_IOcontrol(LCOM_MODULE_TX_READY, NULL, 0, &loraReady, &sizeOfret) == COM_OK)
+            { 
+                if(loraReady == 1 )
+                {
+                    // it will send iotMessage to Lora Port. So Lora Port has sent it through Lora network.
+                    // if sending it is successful, position of iotMessage is stored to flash.
+                    if(updateDB(LOR, iotMessage, iotSize, 10) != RQUEUE_OK)
+                    {
+                        DEBUG(ZONE_ERROR, ("DEMD_Process : Update is failed to LOR @@@@ \r\n"));
+                        return;
+                    }
+
+                    DEBUG(ZONE_TRACE, ("DEMD_Process : push datas. %s %d\r\n\r\n", item.edata, item.size));
+                }
+                else 
+                {
+                    DEBUG(ZONE_WARN, ("\r\n DEMD_Process : wisol tx is not ready.\n\r\n"));
+                }
+            }
         }
     }
     
     //DEBUG(ZONE_FUNCTION, ("-DEMD_Process\r\n"));
+}
+static void encryptData(float *prevLatitude, float *prevLongitude)
+{
+
 }
 
 DEMD_StatusTypeDef DEMD_IOcontrol(DEMD_IOControlTypedef io, int *input, int insize, int *output, int *outsize)
@@ -117,29 +177,78 @@ DEMD_StatusTypeDef DEMD_IOcontrol(DEMD_IOControlTypedef io, int *input, int insi
         // parser for input.
         if(input != NULL && insize > 0)
         {
-            if(*input > 255 )
+            if(*input > 255  && *input < 0)
             {
                 DEBUG(ZONE_ERROR, ("DEMD_IOcontrol : invalided report time (%d)@@@@\r\n", *input));
                 break;
             }
 
-            // periodic time for reporting get to be changed.
+            DEBUG(ZONE_FUNCTION, ("Report Time is changed per %d", *input));
+
+            // To change reporting cycle time.
             reportPeriodIndex = *input;
             
+            // To store it to flash memory.
             storeReportCycle(reportPeriodIndex);
-            
-            TimerStop(&reportToserverTimer);
-            TimerSetValue(&reportToserverTimer, getReportTime(reportPeriodIndex));
-            TimerStart(&reportToserverTimer);
+
+            // To change report timer.
+            demdProcessTimerStart(reportPeriodIndex); 
         }
         break;
     case DEMD_REPORT_TO_SERVER_FAILED:
-        // 
-        
+        //If the device fails to send data when it is set to send data to the server every 1 minute, 
+        //then the next message should be set to be sent at least 10 seconds later.
+        //The transmission interval between messages sent to the server must differ by at least 10 seconds.
+        if(reportPeriodIndex == 1) 
+        {
+#ifndef DEMD_NO_PROCESS_BY_TIMER
+            proceesOnByTimer = false;
+#endif
+
+            TimerStop(&reportToserverTimer);
+            TimerSetValue(&reportToserverTimer, 11000); 
+            TimerStart(&reportToserverTimer);
+        }
         break;
     case DEMD_REPORT_TO_SERVER_SUCCEED:
-        setFinalPositionToFlash(prevLatitude, prevLongitude);
+        // if speed is smaller than 5km, data is stored into flash memory.
+        if(prevSpeed < 5)
+        {
+            encryptData(&prevLatitude, &prevLongitude); 
+            setFinalPositionToFlash(prevLatitude, prevLongitude);
+        }
+
+        break;
+    case DEMD_REPORT_NETWORK_READY:
+        if(reportPeriodIndex == 0) 
+        {
+            DEBUG(ZONE_FUNCTION, ("DEMD_IOcontrol : dummy data will be transfered\r\n"));
+
+            demdProcessTimerStart(1);
+        }
+        break; 
+    case DEMD_REPORT_PREV_GPS:
+        if (output != NULL && *outsize == sizeof(DEMD_GPSTypeDef))
+        {
+            DEMD_GPSTypeDef *gpsdef = (DEMD_GPSTypeDef *)output;
+            gpsdef->latitude = prevLatitude;
+            gpsdef->longitude = prevLongitude;
+        }
         break;    
+    case DEMD_REPORT_PREV_LATITUDE:
+        if(output != NULL && *outsize > 0) 
+        {
+            //DEBUG(ZONE_FUNCTION, ("DEMD_IOcontrol : Latitude=%f\r\n", prevLatitude));
+            *output = prevLatitude;
+        }
+        break;
+    case DEMD_REPORT_PREV_LONGITUDE:           
+        if(output != NULL && *outsize > 0) 
+        {
+            //DEBUG(ZONE_FUNCTION, ("DEMD_IOcontrol : Longitude=%f\r\n", prevLongitude));
+            *output = prevLongitude;
+        }
+        break;
     default:
         ret = DEMD_PARAM_ERROR;
     }
@@ -147,6 +256,17 @@ DEMD_StatusTypeDef DEMD_IOcontrol(DEMD_IOControlTypedef io, int *input, int insi
     DEBUG(ZONE_FUNCTION, ("-DEMD_IOcontrol %d\r\n", ret));
     return ret;
 }
+
+void evaluateGPS(char *pdata, int psize)
+{
+    int count = psize;
+    char *pstr = pdata;
+    do
+    {
+        fusedata(*pstr++);
+    } while(count-- > 0);
+}
+
 
 static int getReportCycleFromFlash()
 {
@@ -218,49 +338,76 @@ static bool setFinalPositionToFlash(float Latitude, float Longitude)
     return true;
 }
 
-static int getReportTime(int value)
+static int getReportTime(int valueofMin)
 {
-    if(value > 255)
+    if(valueofMin > 255)
     {
-        DEBUG(ZONE_ERROR, ("getReportTime : invalided value (%d)@@@@\r\n", value));
+        DEBUG(ZONE_ERROR, ("getReportTime : invalided value (%d)@@@@\r\n", valueofMin));
         return MIN1;
     }
 #ifdef DEMD_IOT_SK_TEST_SPEC	
-    else if(value == 0)
-    {
+ 
         // To support SK iot spec
         return 10000; // 10 secs
+#endif
 
+    return valueofMin*MIN1;
+}
+
+static void dummyCommand() 
+{
+    // This is used to get the data sent from the thingplug when the perioded timer is 0.
+    char msg[DEMD_IOT_MESSAGE_SIZE];
+    int size = DEMD_IOT_MESSAGE_SIZE;
+    
+    IotGPS_Typedef iot;
+    memset(&iot, 0, sizeof(IotGPS_Typedef));
+
+    iot.type = IOT_TYPE_DUMMY;
+    iot.version = BSP_GetAppVersion();
+    sprintf(&iot.reportcycle, "%c", reportPeriodIndex);
+    
+    if(getIotGPSMessage(&iot, msg, &size)) 
+    {
+        if(updateDB(LOR, msg, size, 10) != RQUEUE_OK)
+        {
+            DEBUG(ZONE_ERROR, ("DEMD_IOcontrol : Update is failed to LOR @@@@ \r\n"));
+        }
     }
-#endif	
-
-    return value*MIN1;
 }
 
 static void requestGPSData()
 {
+#ifndef DEMD_NO_PROCESS_BY_TIMER
+    proceesOnByTimer = true;
+#endif
+
     GCMD_IOcontrol(GCOM_REPORT_REQUEST, NULL, 0, NULL, 0);
 }
 
-static void OnReportToServerTimer(void)
+static void OnDemdTimerEvent(void)
 {
-   	requestGPSData();
-
-#ifdef DEMD_IOT_SK_TEST_SPEC
-	TimerSetValue(&reportToserverTimer, getReportTime(reportPeriodIndex)); 
-#endif
-	TimerStart(&reportToserverTimer);
+    if(reportPeriodIndex)
+       requestGPSData();
+    else
+       dummyCommand();
+   	
+    demdProcessTimerStart(reportPeriodIndex);
 }
 
-static void evaluateGPS(char *pdata, int psize)
+static void demdProcessTimerStart(int valueofMin)
 {
-    int count = psize;
-    char *pstr = pdata;
-    do
+    if(valueofMin == 0 || valueofMin == 255)
     {
-        fusedata(*pstr++);
-    } while(count-- > 0);
+        TimerStop(&reportToserverTimer);
+    }
+    else
+    {
+        TimerSetValue(&reportToserverTimer, getReportTime(valueofMin)); 
+        TimerStart(&reportToserverTimer);
+    }
 }
+
 
 static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
 {
@@ -270,7 +417,8 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
 
     // parser data and make new message.
     char *cmd = pdata;
-    if(strstr((const char *)cmd, (const char*)BBOX_STX_BERDP) != NULL) 
+    // if(strstr((const char *)cmd, (const char*)BBOX_STX_BERDP) != NULL) 
+    if(strstr((const char *)cmd, (const char*)BBOX_STR_BURDP) != NULL)
     {
         if(psize > BBOX_MESSAGE_SIZE) {
             DEBUG(ZONE_ERROR, ("parseMessage : buffer size is larger than buffer. @@@@ (%d)", psize));
@@ -278,18 +426,54 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
         else
         { 
             DEBUG(ZONE_TRACE, ("parseMessage : BBox Message received \r\n"));
+            
+            // If there is no periodic reporting, send the data coming from the black box directly. 
+            if(reportPeriodIndex == 0)
+            {
+                parsebbox(pdata, psize);
+                if(isbboxready()) 
+                {
+                    invalidedRetry = 0;
 
-            // to request data from the gps process.
-            reportType = IOT_TYPE_EVENT;
+                    reportType = IOT_TYPE_NONE;
 
-            // backup data to make a message after getting gps data.
-            memset(commandbbox, 0, BBOX_MESSAGE_SIZE);
-            memcpy(commandbbox, pdata, psize);
-            requestGPSData();
+                    IotEvent_Typedef iotE;
+                    iotE.type = IOT_TYPE_EVENT;
+                    iotE.serviceversion = getServiceCode();
+                    iotE.manufacture = getbboxManufacture();
+                    iotE.event = getbboxEvent();
+                    iotE.eventinfo = getbboxEventInfo();
+                    iotE.battery = getbboxBattery();         
+                    iotE.temperature =  getbboxTemperature();
+                    memcpy(iotE.boxserial, (void const *)getbboxSerial(), MAX_SIZE_OF_BBOX_COLUME);
+                    iotE.datetime = 0;
+                    iotE.latitude = 0;
+                    iotE.longitude = 0;
+                    iotE.direction = 0;
+                    iotE.speed = 0;
+        
+                    prevSpeed = 0;
+                    prevLatitude = 0.0;
+                    prevLongitude = 0.0;  
+                    
+                    return getIotEventMessage(&iotE, pout, poutsize);
+                }
+            } 
+            else 
+            {
+                // to request data from the gps process.
+                reportType = IOT_TYPE_EVENT;
+
+                // backup data to make a message after getting gps data.
+                memset(commandbbox, 0, BBOX_MESSAGE_SIZE);
+                memcpy(commandbbox, pdata, psize);
+                requestGPSData();
+            }
         }
 
         return false;
-    } 
+    }
+#if 0     
     else if(strstr((const char *)cmd, (const char*)BBOX_STR_BURDP) != NULL)
     {
         bool ret = false;
@@ -325,6 +509,7 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
 
         return ret;
     }
+#endif     
     else if(reportType == IOT_TYPE_EVENT)
     {
         DEBUG(ZONE_FUNCTION, ("parseMessage : New message will be made by BBox and GPS data\r\n"));
@@ -338,7 +523,12 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
         }
         
         evaluateGPS(pdata, psize);
-        if(isbboxready() && isdataready()) 
+
+#ifdef DEMO_IOT_DONTCARE_GPSDATA
+        if (1)
+#else
+        if (isdataready())
+#endif
         {
             invalidedRetry = 0;
 
@@ -346,18 +536,22 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
 
             IotEvent_Typedef iotE;
             iotE.type = IOT_TYPE_EVENT;
+            iotE.serviceversion = getServiceCode();
             iotE.manufacture = getbboxManufacture();
             iotE.event = getbboxEvent();
-            //itohex(iotE.datetime, 4, getSecFromDateAndTime(getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond()));
+            iotE.eventinfo = getbboxEventInfo();
+            iotE.battery = getbboxBattery();         
+            iotE.temperature =  getbboxTemperature();
+            memcpy(iotE.boxserial, (void const *)getbboxSerial(), MAX_SIZE_OF_BBOX_COLUME);
             iotE.datetime = getSecFromDateAndTime(getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond());
-            iotE.latitude = getLatitude();
-            iotE.longitude = getLongitude();
-            iotE.direction = ((int)getBearing())/3;
+            iotE.latitude = getIntLatitude();
+            iotE.longitude = getIntLongitude();
+            iotE.direction = ((int)getBearing())/IOT_GPS_SPECIFICATION;
             iotE.speed = getSpeed();
-            sprintf(&iotE.battery, "%c", getbboxBattery());
-
-            prevLatitude = iotE.latitude;
-            prevLongitude = iotE.longitude;  
+   
+            prevSpeed = getSpeed();
+            prevLatitude = getLatitude();
+            prevLongitude = getLongitude();  
             
             return getIotEventMessage(&iotE, pout, poutsize);
         }
@@ -381,13 +575,14 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
 #ifdef DEMD_IOT_SK_TEST_SPEC  
         if(1)
 #else
-#ifdef DEMO_IOT_DONTCARE_GPSDATA
+ #ifdef DEMO_IOT_DONTCARE_GPSDATA
         if(1)
-#else        
+ #else        
         if(isdataready())
-#endif        
+ #endif        
 #endif
         {
+            int distance, size;
             invalidedRetry = 0;
 
             IotGPS_Typedef iot;
@@ -395,17 +590,35 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
             iot.version = BSP_GetAppVersion();
             sprintf(&iot.reportcycle, "%c", reportPeriodIndex);
             iot.datetime = getSecFromDateAndTime(getYear(), getMonth(), getDay(), getHour(), getMinute(), getSecond());
-            iot.latitude = getLatitude();
-            iot.longitude = getLongitude();
-            iot.direction = ((int)getBearing())/3;
+            iot.latitude = getIntLatitude();
+            iot.longitude = getIntLongitude();
+            iot.direction = ((int)getBearing())/IOT_GPS_SPECIFICATION;
             iot.speed = getSpeed();
-            iot.cumulativedistance = GetDistance(iot.latitude, iot.longitude, prevLatitude, prevLongitude);  
-            iot.statusofcar = 1;
-            
-            DEBUG(ZONE_FUNCTION, ("speed = %d, direction=%d\r\n",iot.speed , iot.direction));
 
-            prevLatitude = iot.latitude;
-            prevLongitude = iot.longitude;  
+            size = 1;
+            GCMD_IOcontrol(GCOM_REPORT_DISTANCE_BETWEEN_GPS, NULL, 0, &distance, &size);
+            iot.cumulativedistance = (short)distance;
+            iot.statusofcar = getCarStatus(iot.speed, iot.speed);
+          
+
+            // IotGPS-blackbox spec
+            // if vehicle is in parking, no more reporting anymore after parking status is sent to server.
+            // if status of vehicle may be changed, recover periodic transmission.
+            if(iot.statusofcar == CAR_STATUS_STOPING ) 
+            {
+                if(carStatusStop)
+                {
+                    DEBUG(ZONE_FUNCTION, ("Vehicle parking status. No more reporting anymore.\r\n",iot.speed , iot.direction));
+                    return false;
+                }
+                carStatusStop = true;
+            }
+            else 
+                carStatusStop == false;
+
+            prevSpeed = getSpeed();
+            prevLatitude = getLatitude();
+            prevLongitude = getLongitude();  
             
             return getIotGPSMessage(&iot, pout, poutsize);
         }
@@ -421,6 +634,9 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
             else 
             {
                 invalidedRetry = 0;
+
+
+
                 //DEBUG(ZONE_ERROR, ("demd : parseMessage : Error : GPS data is not valied.  To get GPS data is failed @@@@\r\n"));
                 DEBUG(ZONE_ERROR, ("To get GPS data is failed @@@@\r\n"));
 
@@ -460,7 +676,7 @@ static int getSecFromDateAndTime(int year, int month, int day, int hour, int min
 #endif
 
     user_time = mktime(&user_stime);
-    user_time += 32400; // korea time zone.
+    //user_time += 32400; // korea time zone.
 
     ptr_stime = localtime(&user_time);
 

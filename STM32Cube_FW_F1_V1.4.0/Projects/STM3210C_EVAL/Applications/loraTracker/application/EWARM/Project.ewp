@@ -632,7 +632,7 @@
                 <option>
                     <name>OOCOutputFormat</name>
                     <version>3</version>
-                    <state>1</state>
+                    <state>3</state>
                 </option>
                 <option>
                     <name>OCOutputOverride</name>
@@ -1031,6 +1031,9 @@
             <name>User</name>
             <file>
                 <name>$PROJ_DIR$\..\Src\bbox.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Src\carstatus.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Src\circledistance.c</name>

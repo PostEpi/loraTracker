@@ -79,7 +79,7 @@ uint32_t RTC_GetDateTime(uint8_t *showtime, uint8_t *showdate)
 	/* Display date Format : mm-dd-yy */
 	sprintf((char *)showdate, "%2d-%2d-%2d", sdatestructureget.Month, sdatestructureget.Date, 2000 + sdatestructureget.Year);
 
-	//DEBUG(ZONE_TRACE, ("%s %s\r\n", showdate, showtime));
+	//DEBUG(ZONE_FUNCTION, ("[%s %s]\r\n", showdate, showtime));
 	//DEBUG(ZONE_TRACE, ("%d \r\n",HAL_RTC_GetTimerValue(&RtcHandle)));
 
 	return 0;

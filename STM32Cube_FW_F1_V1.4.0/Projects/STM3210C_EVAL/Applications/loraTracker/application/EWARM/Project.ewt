@@ -1171,6 +1171,9 @@
                 <name>$PROJ_DIR$\..\Src\bbox.c</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\..\Src\carstatus.c</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\Src\circledistance.c</name>
             </file>
             <file>

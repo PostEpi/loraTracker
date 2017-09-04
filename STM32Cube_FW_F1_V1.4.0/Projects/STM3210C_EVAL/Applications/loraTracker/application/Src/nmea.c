@@ -24,6 +24,8 @@ static	int			m_nWordIdx ,					// the current word in a sentence
 // globals to store parser results
 static	float			res_fLongitude;					// GPRMC and GPGGA
 static	float			res_fLatitude;					// GPRMC and GPGGA
+static	int				res_iLongitude;					// GPRMC and GPGGA
+static	int				res_iLatitude;					// GPRMC and GPGGA
 static	unsigned char	res_nUTCHour, res_nUTCMin, res_nUTCSec,		// GPRMC and GPGGA 
 						res_nUTCDay, res_nUTCMonth, res_nUTCYear;	// GPRMC
 static	int				res_nSatellitesUsed;			// GPGGA
@@ -151,6 +153,10 @@ static void parsedata() {
 		// parse latitude and longitude in NMEA format
 		res_fLatitude = string2float(tmp_words[2]);
 		res_fLongitude = string2float(tmp_words[4]);
+
+		res_iLatitude = (int)(res_fLatitude*1000000);
+		res_iLongitude = (int)(res_fLongitude*1000000);
+
 		// get decimal format
 		if (tmp_words[3][0] == 'S') res_fLatitude  *= -1.0;
 		if (tmp_words[5][0] == 'W') res_fLongitude *= -1.0;
@@ -207,6 +213,7 @@ static void parsedata() {
 		// parse latitude and longitude in NMEA format
 		res_fLatitude = string2float(tmp_words[3]);
 		res_fLongitude = string2float(tmp_words[5]);
+
 		// get decimal format
 		if (tmp_words[4][0] == 'S') res_fLatitude  *= -1.0;
 		if (tmp_words[6][0] == 'W') res_fLongitude *= -1.0;
@@ -216,6 +223,10 @@ static void parsedata() {
 		degrees = trunc(res_fLongitude / 100.0f);
 		minutes = res_fLongitude - (degrees * 100.0f);
 		res_fLongitude = degrees + minutes / 60.0f;
+
+		res_iLatitude = (int)(res_fLatitude*1000000);
+		res_iLongitude = (int)(res_fLongitude*1000000);
+
 		//parse speed
 		// The knot (pronounced not) is a unit of speed equal to one nautical mile (1.852 km) per hour
 		res_fSpeed = string2float(tmp_words[7]);
@@ -308,6 +319,14 @@ int getMonth() {
 }
 int getYear() {
 	return res_nUTCYear;
+}
+
+int getIntLatitude() {
+	return res_iLatitude;
+}
+
+int getIntLongitude() {
+	return res_iLongitude;
 }
 
 float getLatitude() {

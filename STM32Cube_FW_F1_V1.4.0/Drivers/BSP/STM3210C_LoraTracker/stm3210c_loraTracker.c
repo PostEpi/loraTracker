@@ -413,6 +413,10 @@ void BSP_LED_Off(Led_TypeDef Led)
   */
 #define SIGNAUTURE_EMERGENCE    0x69696969
 
+static int applicationSignatureOffset = 0;
+
+
+
 void BSP_LED_Toggle(Led_TypeDef Led)
 {
     HAL_GPIO_TogglePin(LED_PORT[Led], LED_PIN[Led]);
@@ -430,12 +434,54 @@ bool BSP_IsDownloadModeActivated(void)
     return false;
 }
 
+bool BSP_BootSignatureHash(uint32_t offset, uint8_t *hash, uint32_t size)
+{
+    uint32_t addr = APPLICATION_ADDRESS + offset - APPLICATION_SIGNATURE_DOWNLOAD_HEAD - BOOT_SIGNATURE_SIZE;
+
+    if(addr > ADDR_FLASH_PAGE_127)
+    {
+        return false;
+    }
+
+    /*copy from flash to ram */
+    for (; size > 0; size -= 1, addr += 1, hash++) {
+        *hash = *(uint8_t *) addr;
+    }
+    
+    return true;
+}
+
+void BSP_BootSignature( BootSig *boot)
+{
+    int i;
+    int spFlash[10];
+    uint32_t Address = SP_FLASH_START_ADDRESS;
+
+    int bootSigSize = sizeof(BootSig)/sizeof(int);
+    for(int i = 0 ; i < bootSigSize ; i++, Address+=4)
+    {
+        spFlash[i] = *(__IO uint32_t *)Address;
+    }
+    boot->signature = spFlash[0];
+    boot->lengthofapplication = spFlash[1];
+}
+
+void BSP_Application_Signature(int value)
+{
+    applicationSignatureOffset = value;
+}
+
 void BSP_Download_Reset(void)
 {
     __IO uint32_t FLASHStatus = FLASHIF_OK;
     uint32_t Address = SP_FLASH_START_ADDRESS;
     uint32_t signature = SIGNAUTURE_EMERGENCE;
+
     int retry = 3;
+    BootSig bootsig;
+
+    BSP_BootSignature(&bootsig);
+    bootsig.signature = SIGNAUTURE_EMERGENCE;
     
     /* Unlock the Program memory */
     HAL_FLASH_Unlock();
@@ -454,7 +500,10 @@ void BSP_Download_Reset(void)
     else
     {
       while(retry--) {
-        FLASHStatus = FLASH_If_Write(Address, &signature, 1);
+        //FLASHStatus = FLASH_If_Write(Address, &signature, 1);
+        //FLASHStatus = FLASH_If_Write(Address, &signature, 1);
+        FLASHStatus = FLASH_If_Write(Address, (uint32_t *)&bootsig,  sizeof(BootSig)/sizeof(int));
+
         if (FLASHStatus == FLASHIF_OK)
         {
             HAL_NVIC_SystemReset();
@@ -482,6 +531,17 @@ void BSP_Booting_Reset(void)
     int signature = 0;
     int retry = 3;
     
+    BootSig bootsig;
+    
+    BSP_BootSignature(&bootsig);
+    bootsig.signature = 0;
+
+    if(applicationSignatureOffset != 0) 
+    {
+        bootsig.lengthofapplication = applicationSignatureOffset;
+        applicationSignatureOffset = 0;
+    }
+
     /* Unlock the Program memory */
     HAL_FLASH_Unlock();
 
@@ -499,7 +559,8 @@ void BSP_Booting_Reset(void)
     else
     {
       while(retry--) {
-        FLASHStatus = FLASH_If_Write(Address, &signature, 1);
+        //FLASHStatus = FLASH_If_Write(Address, &signature, 1);
+        FLASHStatus = FLASH_If_Write(Address, (uint32_t *)&bootsig,  sizeof(BootSig)/sizeof(int));
         if (FLASHStatus == FLASHIF_OK)
         {
             HAL_NVIC_SystemReset();
@@ -520,20 +581,42 @@ void BSP_Booting_Reset(void)
     }
 }
 
+void BSP_Appcation_Format(void)
+{
+    __IO uint32_t FLASHStatus = FLASHIF_OK;
+    uint32_t Address = APPLICATION_ADDRESS;
+
+    /* Unlock the Program memory */
+    HAL_FLASH_Unlock();
+
+    /* Clear all FLASH flags */
+    __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR);
+
+    /* Unlock the Program memory */
+    HAL_FLASH_Lock();
+    
+    FLASHStatus = FLASH_If_Erase(Address);
+    if (FLASHStatus != FLASHIF_OK)
+    {
+        printf("  the erase process is failed...\r\n");
+    }
+    else
+    {
+    }
+}
+
+
 void BSP_HW_Reset(void)
 {
-    BSP_OUTGPIO_Low(OUTPUT_NRST);
+    BSP_OUTGPIO_High(OUTPUT_PRST);
+    BSP_Lora_HW_Reset();
     HAL_NVIC_SystemReset();  
 }
 
-void BSP_GPS_HW_Reset(void)
+void BSP_Delay_HW_Reset(void)
 {
-#if 0    
-    BSP_OUTGPIO_High(OUTPUT_PRST);
-    HAL_Delay(10);
-    BSP_OUTGPIO_Low(OUTPUT_PRST);
-#endif  
-    HAL_NVIC_SystemReset();  
+    HAL_Delay(5000);
+    BSP_HW_Reset();
 }
 
 void BSP_Lora_HW_Reset(void)
@@ -550,12 +633,6 @@ void BSP_Lora_Wakeup(void)
     BSP_OUTGPIO_Low(OUTPUT_WKUP);
 }
 
-void BSP_Delay_HW_Reset(void)
-{
-    HAL_Delay(3000);
-    BSP_Lora_HW_Reset();
-    BSP_HW_Reset();
-}
 
 
 /**

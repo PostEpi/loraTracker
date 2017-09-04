@@ -18,6 +18,8 @@ int		getSecond();
 int		getDay();
 int		getMonth();
 int		getYear();
+int     getIntLatitude();
+int     getIntLongitude();
 float	getLatitude();
 float	getLongitude();
 int		getSatellites();

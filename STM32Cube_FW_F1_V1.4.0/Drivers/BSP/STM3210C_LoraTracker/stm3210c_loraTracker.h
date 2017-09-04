@@ -63,6 +63,13 @@
 #include "stm32f1xx_hal.h"
 
 
+#define APPLICATION_SIGNATURE_DOWNLOAD_HEAD     1024
+#define BOOT_SIGNATURE_SIZE                     32
+   
+typedef struct {
+  int signature;
+  int lengthofapplication;
+} BootSig;
 
 /** @defgroup STM3210C_EVAL_Exported_Types Exported Types
   * @{
@@ -791,7 +798,6 @@ void                    BSP_Download_Reset(void);
 void                    BSP_Booting_Reset(void);
 
 void                    BSP_HW_Reset(void);
-void                    BSP_GPS_HW_Reset(void);
 void                    BSP_Lora_HW_Reset(void);
 void                    BSP_Lora_Wakeup(void);
 void                    BSP_Delay_HW_Reset(void);

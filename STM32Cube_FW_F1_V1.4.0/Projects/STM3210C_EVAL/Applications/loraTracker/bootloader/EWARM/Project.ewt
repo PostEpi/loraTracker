@@ -1234,6 +1234,9 @@
                 <name>$PROJ_DIR$\..\Src\flashmenu.c</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\..\Src\intergrity.c</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\Src\main.c</name>
             </file>
             <file>
@@ -1241,6 +1244,9 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Src\menulib.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Src\sha256.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Src\stm32f1xx_hal_msp.c</name>

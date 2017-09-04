@@ -52,6 +52,7 @@
 #include "ecommand.h"
 #include "vdb.h"
 #include "bbox.h"
+#include "time.h"
 #include "debug.h"
 
 
@@ -64,7 +65,10 @@
 #define CMD_SIZE DATABASE_ELEMENT_DATA_SIZE
 
 /* Private macro -------------------------------------------------------------*/
+#define GCOM_RESPOSE_LIMIT_TIME         60000
+
 /* Private variables ---------------------------------------------------------*/
+int response_limit_time;
 /* Private function prototypes -----------------------------------------------*/
 
 /**
@@ -87,6 +91,9 @@ void ECMD_Init(void)
 {
     ecom_Init();
     ecom_ReceiveInit();
+#ifndef GCOM_DEFINE_NO_RESPONSE_LIMIT_TIME
+    response_limit_time = HAL_GetTick();
+#endif    
 }
 
 
@@ -116,12 +123,42 @@ void ECMD_Process(void)
                 {
                     if(parse_cmd(command, i))
                     {
-                        EPRINTF("\r\nok\r\n");
+
+#ifndef GCOM_DEFINE_NO_RESPONSE_LIMIT_TIME
+                        // The message transmitted from the black box is set to be received every minute.
+                        // If there is a message in one minute, ignore it.
+                        int current = HAL_GetTick();
+                        if((current - response_limit_time) < GCOM_RESPOSE_LIMIT_TIME )
+                        {
+                            //DEBUG(ZONE_ERROR, ("ECMD_Process : Command is not accepted till finishing current process @@@@\r\n"));
+                            //DEBUG(ZONE_ERROR, ("ECMD_Process : There is no enough time %d, %d, %d @@@@\r\n", current , response_limit_time, GCOM_RESPOSE_LIMIT_TIME));
+
+                            DEBUG(ZONE_ERROR,("BUSY\r\n"));
+                            EPRINTF("BUSY\r\n");
+
+
+                            i = 0;
+                            memset((void*)command, 0, CMD_SIZE);
+
+                            return;
+                        }
+#endif
+                        //DEBUG(ZONE_FUNCTION, ("ECMD_Process : update the event of blackbox\r\n"));
                         
+                        response_limit_time = current;
+                        DEBUG(ZONE_ERROR,("OK\r\n"));
+                        EPRINTF("OK\r\n");
+
+                        // 
                         if (updateDB(DEM, command, i+1, 0) != RQUEUE_OK)
                         {
                             DEBUG(ZONE_ERROR, ("ECMD_Process : Update is failed to DEM @@@@\r\n"));
                         }
+                    } 
+                    else
+                    {
+                        DEBUG(ZONE_ERROR,("ERROR\r\n"));
+                        EPRINTF("ERROR\r\n");
                     }
                 }
                 i = 0;
@@ -143,7 +180,7 @@ void ECMD_Process(void)
     
     while (!isEmptydDB(db) && selectDB(db, &item) == RQUEUE_OK)
     {
-        // it is to tranfer gps data. 
+        // If there is gps data, tranfer it to black box. 
         DEBUG(ZONE_TRACE, ("ECMD_Process : %d, %d, %s\r\n", item.size, item.retcount, item.edata ))
         EPRINTF(item.edata);
         deleteDB(db, &item);
@@ -157,11 +194,14 @@ static bool parse_cmd(const char *cmd, int size)
     bool bCmdValided = false;
     bool bReset = false;
 
+#if 0
     if(strstr((const char *)cmd, (const char *)BBOX_STX_BERDP) != NULL)
     {
         bCmdValided = true;
     }
-    else if(strstr((const char *)cmd, (const char *)BBOX_STR_BURDP) != NULL)
+#endif     
+    
+    if(strstr((const char *)cmd, (const char *)BBOX_STR_BURDP) != NULL)
     {
         bCmdValided = true;
     }

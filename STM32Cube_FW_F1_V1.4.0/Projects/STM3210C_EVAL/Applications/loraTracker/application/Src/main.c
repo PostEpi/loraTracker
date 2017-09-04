@@ -104,11 +104,20 @@ static void USER_Process()
     {
         ch = getdebugChar();
 
-		DEBUG(ZONE_FUNCTION, ("%c", ch));
+		//DEBUG(ZONE_FUNCTION, ("%c", ch));
 
         buffer[msgcount++] = ch;
-        if(ch == '\n')
+#ifdef DEMD_IOT_SK_PREPARE_SPEC
+        if( ch == '\n')
         {
+#else
+        // if you send commands in a typical serial program,
+        // there is no line feed value(\r). 
+        if(ch == '\r' || ch == '\n')
+        {
+            // To add LF to buffer.
+            buffer[msgcount++] = '\n';
+#endif            
             bfound = false;
             int i, cmdLength;
             for(i = 0; i < DEBUG_RESPONSE_MAX; i++)
@@ -126,15 +135,19 @@ static void USER_Process()
                         }
                         break;
                     case 1:
-                        if(buffer[cmdLength] == '0' || buffer[cmdLength] == '1')
-                        {
-                            if(buffer[cmdLength] == '0')  DebugFlag = 0;
-                            else DebugFlag = 1<<9;
-                        }
+                        // if(buffer[cmdLength] == '0' || buffer[cmdLength] == '1')
+                        // {
+                        //     if(buffer[cmdLength] == '0')  DebugFlag = 0;
+                        //     else DebugFlag = 1<<9;
+                        // }
+                        BSP_Lora_Wakeup();
+                        LBPRINTF(&buffer[cmdLength], msgcount-cmdLength);
                         break;
                     }
                 }
             }
+
+#ifdef DEMD_IOT_SK_PREPARE_SPEC            
             // it's passed to the lora;
             if(bfound == false) 
             {
@@ -146,7 +159,7 @@ static void USER_Process()
                 BSP_Lora_Wakeup();
                 LBPRINTF(buffer, msgcount);
             }
-
+#endif
             memset(buffer, 0, USER_PROCESS_CHAR_BUFFER_SIZE);
             msgcount = 0; 
         }
@@ -206,7 +219,7 @@ static void USER_Process()
                     }
                 }
             }
-#ifdef DEMO_IOT_DONTCARE_GPSDATA            
+#ifdef DEMD_IOT_SK_PREPARE_SPEC            
             // it's passed to the lora;
             if(bfound == false) 
             {
@@ -266,13 +279,15 @@ int main(void)
     BSP_OUTGPIO_init(OUTPUT_LORA_POWER, GPIO_PIN_RESET);
     BSP_OUTGPIO_init(OUTPUT_LORA_RESET, GPIO_PIN_SET);
 #else
-    HAL_Delay(10);
     BSP_OUTGPIO_init(OUTPUT_WKUP, GPIO_PIN_SET);
     HAL_Delay(1);
     BSP_OUTGPIO_Low(OUTPUT_WKUP);
-    
+  
     BSP_OUTGPIO_init(OUTPUT_NRST, GPIO_PIN_SET);
     BSP_OUTGPIO_init(OUTPUT_PRST, GPIO_PIN_RESET);
+
+    // The flow bwtween the system and lora must be syncronized. 
+    BSP_Lora_HW_Reset();
 
     /* Initialize BSP input pin */
     BSP_Input_Init(INPUT_FACTORY, INPUT_MODE_GPIO);
@@ -318,15 +333,16 @@ int main(void)
 
     RTC_init();
     TIM_Init();
-
+    
+    DEMD_Init();
     ECMD_Init();
     LCMD_Init();
     GCMD_Init();
-    DEMD_Init();
+
 
     BSP_LED_Off(LED_RED);
     BSP_LED_Off(LED_GREEN);
-
+    
     /* Infinite loop */
     while (1)
     {

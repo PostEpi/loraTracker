@@ -12,7 +12,7 @@
 #define WISOL_MAX_RESPONSE_TIME 50000   
 #define WISOL_RESPONSE_TIME     10000
 
-#define MODULE_RESPONSE_MAX 20
+#define MODULE_RESPONSE_MAX 23
 #define MODULE_RESPONSE_LEN 35
 
 static const uint8_t MODULE_RESPONSE[MODULE_RESPONSE_MAX][MODULE_RESPONSE_LEN] =
@@ -23,9 +23,12 @@ static const uint8_t MODULE_RESPONSE[MODULE_RESPONSE_MAX][MODULE_RESPONSE_LEN] =
         "BUSY",
         "SLEEP",
         "RX_MSG_FP222_LEN",
+        "UNCON_UP",
         "CON_DOWN",
         "UNCON_DOWN",
         "JOIN_COMPLETE",
+        "Join is completed",
+        "JOIN_ACCEPT",
         "FRAME_TYPE_JOIN_ACCEPT",
         "SEND",
         "RX1CH_OPEN",
@@ -46,9 +49,12 @@ typedef enum {
     BUSY,
     SLEEP,
     RX_MSG_FP222_LEN,
+    UNCON_UP,
     CON_DOWN,
     UNCON_DOWN,
     JOIN_COMPLETE,
+    JOIN_IS_COMPLETE,
+    JOIN_ACCEPT,
     FRAME_TYPE_JOIN_ACCEPT,
     SEND,
     RX1CH_OPEN,
@@ -95,6 +101,8 @@ typedef struct
 
 static bool wisolInit = false;
 static int transferFail = 0;
+static int wisolInitCountAfterReset = 0;
+static int retryCount = 0;
 static callbackFunc callback = NULL;
 
 static LRW_Command_TypeDef dataCmd;
@@ -135,15 +143,23 @@ void initWisol(callbackFunc cb)
 #ifdef DEMD_IOT_SK_TEST_SPEC     
         strcpy(dataCmd.cmd, "LRW 50 1\r\n");
 #else
-#ifdef DEMO_IOT_DONTCARE_GPSDATA
+#ifdef DEMD_IOT_SK_PREPARE_SPEC
         strcpy(dataCmd.cmd, "LRW 50 1\r\n");
 #else
         strcpy(dataCmd.cmd, "LRW 50 0\r\n");
 #endif
 #endif 
+
+#ifdef DEMO_IOT_RF_TX_MODE_FOR_MASSPRODUCT
+        strcpy(dataCmd.cmd, "LRW 80 1 923200 7 14 0 100\r\n");
+#endif
+#ifdef DEMO_IOT_RF_RX_MODE_FOR_MASSPRODUCT
+        strcpy(dataCmd.cmd, "LRW 81 923299 7 0\r\n");
+#endif
+
         dataCmd.sizeofcmd = strlen(dataCmd.cmd);
         dataCmd.noreset = true;
-        dataCmd.timeoutsec = WISOL_RESPONSE_TIME;
+        dataCmd.timeoutsec = 3000;//WISOL_RESPONSE_TIME;
         dataCmd.respAck = OK;
 
         // The first command is executed after a few seconds because Lora needs a intialization time.
@@ -182,6 +198,7 @@ bool writeLRW(const char *msg, int size, int bypasscmd)
             return sendBinaryTx(skmsg, size, OK); 
 #else           
             return sendBinaryTx(msg, size, UNCON_DOWN);
+            //return sendBinaryTx(msg, size, OK);
 #endif            
         }
         else
@@ -216,6 +233,21 @@ bool isInProcess()
     return (currentCmd != NULL) ? true : false;
 }
 
+static void failedTransfer() 
+{
+    transferFail++;
+    retryCount = 0;
+    currentCmd = NULL;
+
+    DEBUG(ZONE_FUNCTION, ("OnResponseEvent : Due to timeout, messages can no longer be delivered. %d \r\n", transferFail));
+
+    // Indicates the transmission failure with LED2
+    BSP_LED_On(LED2);
+    responseTimerOff();
+    LCMD_IOcontrol(LCOM_REPORT_TO_SERVER_FAILED, NULL, 0, NULL, 0);
+
+}
+
 static void OnResponseEvent()
 {
     DEBUG(ZONE_FUNCTION, ("+OnResponseEvent \r\n"));
@@ -230,14 +262,43 @@ static void OnResponseEvent()
                 currentCmd->noreset = false;
 
                 responseTimerOff();
-                send(currentCmd);
+
+                if(currentCmd->respAck == UNCON_DOWN)
+                {
+                    currentCmd->noreset = true;
+                    if(wisolInit)
+                    {
+                        if(retryCount > 2) 
+                        {
+                            DEBUG(ZONE_ERROR, ("OnResponseEvent: trasmission failed @@@@ \r\n"));
+                            failedTransfer();
+                        }
+                        else 
+                            send(currentCmd);
+                    }
+                    else 
+                    {
+                        wisolInitCountAfterReset++;
+                        responseTimerOn(1000);    
+
+                        if(wisolInitCountAfterReset > 3) 
+                        {
+                            DEBUG(ZONE_ERROR, ("OnResponseEvent: Timeout because Network is not ready @@@@ \r\n"));
+                            failedTransfer();
+                        }
+                    }
+                }
+                else
+                {
+                    wisolInitCountAfterReset = 0;
+                    send(currentCmd);
+                }
             }
             else
             {
                 // if there is no reponse until limit itme, lora module may be dead.
                 DEBUG(ZONE_ERROR, ("Lora module will need to start over @@@@ \r\n"));
                 responseTimerOff();
-                wisolInit = false;
 
                 reset();
                 currentCmd->noreset = true;
@@ -248,15 +309,7 @@ static void OnResponseEvent()
         }
         else if (currentCmd->timeoutsec == WISOL_MAX_RESPONSE_TIME)
         {
-            transferFail++;
-            currentCmd = NULL;
-
-            DEBUG(ZONE_FUNCTION, ("OnResponseEvent : Due to timeout, messages can no longer be delivered. %d \r\n", transferFail));
-
-			// Indicates the transmission failure with LED2
-            BSP_LED_On(LED2);
-            responseTimerOff();
-            LCMD_IOcontrol(LCOM_REPORT_TO_SERVER_FAILED, NULL, 0, NULL, 0);
+            failedTransfer(); 
         }
     }
     else
@@ -386,6 +439,8 @@ static bool sendBinaryTx(const char *msg, int size, Wisol_ResposeTypeDef resptyp
     dataCmd.timeoutsec = WISOL_RESPONSE_TIME;
     dataCmd.respAck = resptype;
 
+    retryCount = 0;
+
     ret = send(&dataCmd);
 
     DEBUG(ZONE_FUNCTION, ("+sendBinayTx : ret=%d \r\n", ret));
@@ -402,6 +457,7 @@ static bool send(LRW_Command_TypeDef *sendmsg)
     {
         BSP_LED_On(LED2);
 
+        retryCount++;
         currentCmd = sendmsg;
         (*callback)(currentCmd->cmd, currentCmd->sizeofcmd);
         responseTimerOn(currentCmd->timeoutsec);
@@ -419,7 +475,23 @@ static void wakeup()
 
 static void reset()
 {
+    wisolInit = false;
     BSP_Lora_HW_Reset();
+}
+
+static TimerEvent_t systemResetTimer;
+static void OnWisolTimerEvent()
+{
+    TimerStop(&systemResetTimer);
+    BSP_HW_Reset();
+}
+
+static void systemReset()
+{
+    // If the application downlink is enabled, reset the system after some times because wisol should send ACK to the thingplug. 
+    TimerInit(&systemResetTimer, OnWisolTimerEvent);
+    TimerSetValue(&systemResetTimer, 10000);
+    TimerStart(&systemResetTimer);
 }
 
 #ifndef DEMD_IOT_SK_TEST_SPEC
@@ -428,7 +500,7 @@ static void getRssi()
     strcpy(dataCmd.cmd, "LRW 4A\r\n");
     dataCmd.sizeofcmd = strlen(dataCmd.cmd);
     dataCmd.noreset = true;
-    dataCmd.timeoutsec = 2000;//WISOL_RESPONSE_TIME;
+    dataCmd.timeoutsec = WISOL_RESPONSE_TIME;
     dataCmd.respAck = OK;
 
     // The first command is executed after a few seconds because Lora needs a intialization time.
@@ -518,6 +590,7 @@ static int rxmsgpf222Parser(int index, const char *cmd, int size, char *outmsg, 
     return bfound? msgCount : 0;
 }
 
+
 static void rxmsgparser(const char *cmd, int size)
 {
     int which, payloadlength;
@@ -530,7 +603,7 @@ static void rxmsgparser(const char *cmd, int size)
     {
     case RX_MSG_CMD_DEVRESET:
         DEBUG(ZONE_FUNCTION, ("System reset after 1sec..\r\n"));
-        BSP_Delay_HW_Reset(); // time delay to allow lora module to be able to response Ack to N/W server
+        systemReset(); // time delay to allow lora module to be able to response Ack to N/W server
         break;
     case RX_MSG_CMD_REPPERCHANGE:
         payloadlength = digit2dec(rxtype.payloadlength[0]) * 16 + digit2dec(rxtype.payloadlength[1]);
@@ -538,8 +611,9 @@ static void rxmsgparser(const char *cmd, int size)
         if (payloadlength)
         {
             int delaytime = digit2dec(rxtype.payload[0]) * 16 + digit2dec(rxtype.payload[1]);
-            DEBUG(ZONE_FUNCTION, ("Interval will be changed to %d.\r\n", delaytime));
+            DEBUG(ZONE_FUNCTION, ("Interval will be changed to %d. But this is not supported\r\n", delaytime));
         }
+        //systemReset(); // time delay to allow lora module to be able to response Ack to N/W server
         break;
     case RX_MSG_CMD_REPIMMEDIATE:
         DEBUG(ZONE_FUNCTION, ("System reset after 1sec..\r\n"));
@@ -550,6 +624,9 @@ static void rxmsgparser(const char *cmd, int size)
         if (payloadlength)
         {
             externalDevManage(rxtype.payload, payloadlength);
+            
+            // To reset HW
+            //systemReset();  
         }
         break;
     }
@@ -573,12 +650,30 @@ static bool responseProcess(const int index, const char *cmd, int size)
         DEBUG(ZONE_TRACE, ("OK received!!!\r\n"));
         if (currentCmd != NULL && currentCmd->respAck == OK)
         {
- 
+
              // When the transmission is completed, it is led off.
             BSP_LED_Off(LED2);
 
             responseTimerOff();
             currentCmd = NULL;
+
+ #ifdef DEMO_IOT_RF_TX_MODE_FOR_MASSPRODUCT
+            static bool txStart = true;
+            if(txStart) 
+            {
+                DEBUG(ZONE_FUNCTION, ("LRW 82 !!!\r\n"));
+                
+                txStart = false;
+                strcpy(dataCmd.cmd, "LRW 82\r\n");          // CW mode setting
+                dataCmd.sizeofcmd = strlen(dataCmd.cmd);
+                dataCmd.noreset = true;
+                dataCmd.timeoutsec = 50000;
+                dataCmd.respAck = OK;
+
+                currentCmd = &dataCmd;
+                responseTimerOn(dataCmd.timeoutsec);
+            }
+#endif
 
 #ifdef DEMD_IOT_SK_TEST_SPEC
             DEBUG(ZONE_FUNCTION, ("OK received. try=%d, success=%d\r\n", sendSkiot, successSkiot));
@@ -657,6 +752,7 @@ static bool responseProcess(const int index, const char *cmd, int size)
     case Rx_MSG:
         rxmsgparser(cmd, size);
         break;
+    case UNCON_UP:
     case FRAME_TYPE_DATA_CONFIRMED_DOWN:
     case FRAME_TYPE_DATA_UNCONFIRMED_DOWN:
     case CON_DOWN:
@@ -683,17 +779,23 @@ static bool responseProcess(const int index, const char *cmd, int size)
         }
         // a mission is succeed
         break;
-    case JOIN_COMPLETE:
+    case JOIN_ACCEPT:
     case FRAME_TYPE_JOIN_ACCEPT:
-        DEBUG(ZONE_FUNCTION, ("JOIN_COMPLETE received!!!\r\n"));
+        break;
+    case JOIN_COMPLETE:
+    case JOIN_IS_COMPLETE:
+        DEBUG(ZONE_FUNCTION, ("Lora Network is ready !!!\r\n"));
         responseTimerOff();
-        currentCmd = NULL;
+        //currentCmd = NULL;
         wisolInit = true;
+
+        // Notify Demd that lora network is ready.
+        DEMD_IOcontrol(DEMD_REPORT_NETWORK_READY, NULL, 0, NULL, 0);
+    
 #ifdef DEMD_IOT_SK_TEST_SPEC
         if(!skiotpec) 
         {
             skiotpec = true;
-            wisolInit = false;
             reset();
         }
 #endif
@@ -717,17 +819,21 @@ static bool responseProcess(const int index, const char *cmd, int size)
 
     case DEVRESET:
         DEBUG(ZONE_FUNCTION, ("System reset after 1sec..\r\n"));
-        BSP_Delay_HW_Reset(); // time delay to allow lora module to be able to response Ack to N/W server
+        systemReset(); // time delay to allow lora module to be able to response Ack to N/W server
         break;
     case INTERVAL:
         if (rxmsgcnt)
         {
-            DEBUG(ZONE_FUNCTION, ("interval will be changed to %d.\r\n", digit2dec(rxmsg[0]) * 16 + digit2dec(rxmsg[1])));
+            DEBUG(ZONE_FUNCTION, ("interval will be changed to %d.  But this is not supported\r\n", digit2dec(rxmsg[0]) * 16 + digit2dec(rxmsg[1])));
+            //systemReset(); // time delay to allow lora module to be able to response Ack to N/W server
         }
         break;
     case EXTDEVMGMT:
         DEBUG(ZONE_FUNCTION, ("EXTDEVMGMT : %d, %s\r\n", rxmsgcnt, rxmsg));
         externalDevManage(rxmsg, rxmsgcnt);
+        
+        // To reset HW
+        //systemReset();
         break;
     case WAKE_UP:
 		// When Lora wakes up, it turns on.
@@ -756,7 +862,7 @@ bool parser_Wisol(char *cmd, int size)
 {
     int i = 0;
     int cmdLength = 0;
-    wisolInit = true;
+    //wisolInit = true;
 
     //upper_string(cmd);
 

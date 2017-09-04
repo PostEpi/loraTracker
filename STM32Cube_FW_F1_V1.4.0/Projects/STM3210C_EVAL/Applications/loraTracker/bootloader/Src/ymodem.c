@@ -79,6 +79,13 @@ uint8_t CalcChecksum(const uint8_t *p_data, uint32_t size);
 
 /* Private functions ---------------------------------------------------------*/
 
+static void cryptoSignature(int size)
+{
+	// If download image is valid, the download size is saved in the flash 
+	// to check that the application is valid at boot time.    
+    BSP_Application_Signature(size);
+}
+
 static bool CheckHeader(int size)
 {
     uint32_t checkArray[256];
@@ -114,6 +121,9 @@ static bool CheckHeader(int size)
         if (d != aPacketData[(i + 1) * 4 + 3])
             return false;
     }
+    
+    cryptoSignature(size);
+    
     return true;
 }
 

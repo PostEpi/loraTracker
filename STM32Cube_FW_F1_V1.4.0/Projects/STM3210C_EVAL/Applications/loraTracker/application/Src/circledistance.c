@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "circledistance.h"
+#include "debug.h"
 
 #define M_PI       3.14159265358979323846
 
@@ -152,8 +153,22 @@ double distanceInKmBetweenEarthCoordinates(double lat1, double lon1, double lat2
   lat1 = degreesToRadians(lat1);
   lat2 = degreesToRadians(lat2);
 
-  double a = sin(dLat/2) * sin(dLat/2) +
-          sin(dLon/2) * sin(dLon/2) * cos(lat1) * cos(lat2); 
+  double a = sin(dLat/2) * sin(dLat/2) + sin(dLon/2) * sin(dLon/2) * cos(lat1) * cos(lat2); 
   double c = 2 * atan2(sqrt(a), sqrt(1-a)); 
   return earthRadiusKm * c;
+}
+
+void getDistanceEx(double lat1, double lng1, double lat2, double lng2, double *retValue)
+{
+	double dLat, dLon;  
+    double earth_radius = 6373;
+	double a, c, d;
+    dLat = degreesToRadians(lat2 - lat1);
+    dLon = degreesToRadians(lng2 - lng1);
+    a = sin(dLat/2) * sin(dLat/2) + cos(degreesToRadians(lat1)) * cos(degreesToRadians(lat2)) * sin(dLon/2) * sin(dLon/2);
+    c = 2 * asin(sqrt(a));
+    *retValue = earth_radius * c;
+
+	*retValue *= 1000.0;
+
 }
