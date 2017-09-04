@@ -41,7 +41,6 @@ void DEMD_Process();
 DEMD_StatusTypeDef DEMD_IOcontrol(DEMD_IOControlTypedef io, int *input, int insize, int *output, int *outsize); 
 void evaluateGPS(char *pdata, int psize);
 
-
 #ifdef __cplusplus
 }
 #endif
