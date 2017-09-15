@@ -57,6 +57,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* enable debug zone */
 int DebugFlag = 0x3;//0xf;
+bool loracmdbypass = false;
 
 /* UART handler declaration */
 UART_HandleTypeDef UartHandle;
@@ -153,6 +154,18 @@ static void USER_Process()
             {
 				// You must be able to send commands directly to the lora chip for test certification. Sk spec 
                 DEBUG(ZONE_TRACE, ("USER_Process : it has been sent to lora(%s)", buffer));
+                //updateDB(LOR, buffer, msgcount, CID_TX_BYPASS_PROCESS_FOR_SKIOT);
+                //int changetime = 1;
+                //DEMD_IOcontrol(DEMD_REPORT_PERIOD_CHANGE, &changetime, 1, NULL, 0);
+                BSP_Lora_Wakeup();
+                LBPRINTF(buffer, msgcount);
+            }
+#else
+            // it's passed to the lora;
+            if(bfound == false && loracmdbypass) 
+            {
+				// You must be able to send commands directly to the lora chip for test certification. Sk spec 
+                DEBUG(ZONE_TRACE, ("USER_Process : bypass (%s)", buffer));
                 //updateDB(LOR, buffer, msgcount, CID_TX_BYPASS_PROCESS_FOR_SKIOT);
                 //int changetime = 1;
                 //DEMD_IOcontrol(DEMD_REPORT_PERIOD_CHANGE, &changetime, 1, NULL, 0);
@@ -291,8 +304,9 @@ int main(void)
 
     /* Initialize BSP input pin */
     BSP_Input_Init(INPUT_FACTORY, INPUT_MODE_GPIO);
-    if(BSP_Input_GetState(INPUT_FACTORY))
+    if(BSP_Input_GetState(INPUT_FACTORY) == 1)
     {
+        loracmdbypass = true;
         DebugFlag = 0xf;
     }
     
@@ -327,9 +341,13 @@ int main(void)
 #else
     USER_Init();
 #endif
-
     /* Output a message on Hyperterminal using printf function */
     printf("\n\r *** Lora Board Start ver.%d***\n\r\n\r", BSP_GetAppVersion() );
+
+    if(loracmdbypass)
+    {
+        printf("\n\r *** factory mode is enabled***\n\r\n\r");
+    }
 
     RTC_init();
     TIM_Init();
@@ -339,10 +357,28 @@ int main(void)
     LCMD_Init();
     GCMD_Init();
 
-
     BSP_LED_Off(LED_RED);
     BSP_LED_Off(LED_GREEN);
-    
+
+
+
+    // while(1)
+    // {
+    //     if(BSP_Input_GetState(INPUT_FACTORY))
+    //     {
+    //         printf("\n\r *** High ***\n\r\n\r");
+    //     }
+    //     else 
+    //     {
+    //         printf("\n\r *** Low ***\n\r\n\r");
+    //     }
+    // }
+#if 0
+    int status = 0, sizeofstatus = 1;
+    DEMD_IOcontrol(DEMD_REPORT_GET_ACTIVATION_STATUS, NULL, 0, &status, &sizeofstatus);
+    loracmdbypass = (status == 1)?true:false;
+#endif
+
     /* Infinite loop */
     while (1)
     {

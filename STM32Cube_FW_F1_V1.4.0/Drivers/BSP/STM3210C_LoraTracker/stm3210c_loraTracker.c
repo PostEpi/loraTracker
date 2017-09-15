@@ -84,8 +84,8 @@ typedef struct
 #define SD_NO_RESPONSE_EXPECTED 0x80
 
 /* Iot Tracker version number */
-#define __BOOTLOADER_VERSION        (1)
-#define __APPLICATION_VERSION       (4)
+#define __BOOTLOADER_VERSION        (5)
+#define __APPLICATION_VERSION       (5)
 
 #if 0
 __APPLICATION_VERSION: application version history.
@@ -610,7 +610,7 @@ void BSP_HW_Reset(void)
 {
     BSP_OUTGPIO_High(OUTPUT_PRST);
     BSP_Lora_HW_Reset();
-    HAL_NVIC_SystemReset();  
+    //HAL_NVIC_SystemReset();  
 }
 
 void BSP_Delay_HW_Reset(void)
@@ -1675,10 +1675,11 @@ void SD_IO_WriteDummy(void)
 
 #endif /* HAL_SPI_MODULE_ENABLED */
 
+
 #ifdef HAL_I2C_MODULE_ENABLED
 /********************************* LINK I2C EEPROM *****************************/
 /**
-  * @brief  Initializes peripherals used by the I2C EEPROM driver.
+  * @brief  Initializes peripherals used by the I2C EEPOM driver.
   * @retval None
   */
 void EEPROM_I2C_IO_Init(void)

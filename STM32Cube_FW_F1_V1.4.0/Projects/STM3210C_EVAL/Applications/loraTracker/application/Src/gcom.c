@@ -121,7 +121,6 @@ void gcom_Init(void)
 
     UartHandle.Instance = USART3;
 #else 
-    BSP_OUTGPIO_High(PRST_PIN);
     UartHandle.Instance = GPS_USARTx;
 #endif
     UartHandle.Init.BaudRate = 9600;

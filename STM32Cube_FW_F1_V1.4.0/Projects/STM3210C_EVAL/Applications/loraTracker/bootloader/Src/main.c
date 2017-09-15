@@ -70,7 +70,57 @@ static void EXT_Init(void);
 static void IAP_Init(void);
 void SystemClock_Config(void);
 
-//#define BOOT_NO_SECURITY             
+#define BOOT_NO_SECURITY     
+
+
+#define BOOTLOADER_CHAR_BUFFER_SIZE   120
+//static const uint8_t *REQEUEST_COMMAND  =  "$BDRDP,DOWNLOAD,*54\r\n";
+static const uint8_t *REQEUEST_COMMAND  =  "sss\r\n";
+
+void checkDownloadCmdFromExternal()
+{
+    char ch;
+    bool bfound = false;
+	static int msgcount = 0;
+    static char buffer[BOOTLOADER_CHAR_BUFFER_SIZE];
+
+    while(1) 
+    {
+        if (HAL_UART_Receive(&ExUartHandle, (uint8_t *)&ch, 1, 10) != HAL_TIMEOUT)
+        {
+
+            buffer[msgcount++] = ch;
+            if (ch == '\n')
+            {
+                bfound = false;
+                int i, cmdLength;
+
+                cmdLength = strlen((const char *)REQEUEST_COMMAND);
+                //if (!strncmp((const char *)buffer, (const char *)REQEUEST_COMMAND, cmdLength))
+                if (strstr((const char *)buffer, (const char *)REQEUEST_COMMAND) != NULL)
+                {
+                    Serial_PutString(&UartHandle, (uint8_t *)"Download command is received!!!\r\n");
+                    break;
+                }
+                memset(buffer, 0, BOOTLOADER_CHAR_BUFFER_SIZE);
+                msgcount = 0;
+            }
+
+            if (msgcount > BOOTLOADER_CHAR_BUFFER_SIZE)
+            {
+                memset(buffer, 0, BOOTLOADER_CHAR_BUFFER_SIZE);
+                msgcount = 0;
+            }
+        } 
+        else 
+        {
+            char key = 's';
+            //HAL_UART_Transmit(&ExUartHandle, &key, sizeof(key), 0xffffffff);
+            //Serial_PutString(&UartHandle, &key);
+            HAL_Delay(10);
+        }
+    }
+}
 
 /**
   * @brief  Main program
@@ -100,6 +150,7 @@ int main(void)
             }
         }
     }
+#ifndef BOOT_NO_SECURITY       
     else 
     {
       
@@ -112,6 +163,7 @@ int main(void)
         else
             bSecurityOK = false;
     }
+#endif
     
     /* STM32F107xC HAL library initialization:
        - Configure the Flash prefetch
@@ -163,8 +215,8 @@ int main(void)
         if(bSecurityOK == false)
         {
             //BSP_Appcation_Format();
-            Serial_PutString(&UartHandle, (uint8_t *)"Security failed\r\n");
-            while(1);
+            Serial_PutString(&UartHandle, (uint8_t *)"\r\nSecurity Booting failed\r\n");
+            checkDownloadCmdFromExternal();
               
         }
 #endif
@@ -176,8 +228,12 @@ int main(void)
         //HAL_UART_Transmit(&ExUartHandle, &key, sizeof(key), 0xffffffff);
         
 		Serial_PutString(&UartHandle, (uint8_t *)"\r\n======================================================================");
+#ifndef BOOT_NO_SECURITY        
         Serial_PutString(&UartHandle, (uint8_t *)"\r\n=              (C) COPYRIGHT 2017 Download Process                   =");
-		Serial_PutString(&UartHandle, (uint8_t *)"\r\n======================================================================");
+#else        
+        Serial_PutString(&UartHandle, (uint8_t *)"\r\n=          (C) COPYRIGHT 2017 Download Process Security              =");
+#endif
+        Serial_PutString(&UartHandle, (uint8_t *)"\r\n======================================================================");
         SerialDownload(&ExUartHandle, true, true);
         BSP_Booting_Reset();
 #endif 

@@ -16,11 +16,13 @@
 
 #define DEMD_PROCESS_LOG_SIZE       4   
 #define SETTING_PERIOD_REPORT_CYCLE "period_report_cycle"
+#define SETTING_APPKEY_ACTIVATION   "appkey_activation"
 #define MIN1                        60000
 
 
 static TimerEvent_t reportToserverTimer;
 static int reportPeriodIndex = 0;
+static bool appkeyactivation = true;
 static IOT_MessageTypeDef reportType = IOT_TYPE_NONE;
 static bool proceesOnByTimer = false;
 
@@ -34,12 +36,14 @@ static int getReportCycleFromFlash();
 static bool getFinalPositionFromFlash(float *Latitude, float *Longitude);
 static bool setFinalPositionToFlash(float Latitude, float Longitude);
 static int  getReportTime(int value);
+static bool IsAPPKeyWrittenToFlash();
 static void OnDemdTimerEvent(void);
 static void demdProcessTimerStart(int value);
 static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize);
 static int  getSecFromDateAndTime();
 //static void itohex(char *buf, int size, int value);
 static bool storeReportCycle(int value);
+static bool storeAppKeyActivated(bool bactive);
 static void requestGPSData();
 
 
@@ -58,8 +62,8 @@ void DEMD_Init()
     DEBUG(ZONE_INIT, ("+DEMD_Init DEMD_IOT_SK_PREPARE_SPEC\r\n"));
 #endif
 
-#ifdef DEMD_IOT_SK_TEST_SPEC
-    DEBUG(ZONE_INIT, ("+DEMD_Init DEMD_IOT_SK_TEST_SPEC\r\n"));
+#ifdef DEMD_IOT_SK_10SECONDS_TX_SPEC
+    DEBUG(ZONE_INIT, ("+DEMD_Init DEMD_IOT_SK_10SECONDS_TX_SPEC\r\n"));
 #else
     DEBUG(ZONE_INIT, ("+DEMD_Init\r\n"));
 #endif    
@@ -67,7 +71,7 @@ void DEMD_Init()
     easyflash_init();
     reportPeriodIndex = getReportCycleFromFlash();
     getFinalPositionFromFlash(&prevLatitude, &prevLongitude);
-    
+    appkeyactivation = IsAPPKeyWrittenToFlash();
 
     //storeReportCycle(1);
 	// If the server sets the transmission period to 255, iotGPS should not transmit data.
@@ -183,7 +187,7 @@ DEMD_StatusTypeDef DEMD_IOcontrol(DEMD_IOControlTypedef io, int *input, int insi
                 break;
             }
 
-            DEBUG(ZONE_FUNCTION, ("Report Time is changed per %d", *input));
+            DEBUG(ZONE_FUNCTION, ("The cycle reporting has been changed to %d min\r\n", *input));
 
             // To change reporting cycle time.
             reportPeriodIndex = *input;
@@ -193,6 +197,13 @@ DEMD_StatusTypeDef DEMD_IOcontrol(DEMD_IOControlTypedef io, int *input, int insi
 
             // To change report timer.
             demdProcessTimerStart(reportPeriodIndex); 
+        }
+        break;
+    case DEMD_REPORT_GET_PERIOD:
+        if(output != NULL && *outsize > 0) 
+        {
+            //DEBUG(ZONE_FUNCTION, ("DEMD_IOcontrol : Longitude=%f\r\n", prevLongitude));
+            *output = reportPeriodIndex;
         }
         break;
     case DEMD_REPORT_TO_SERVER_FAILED:
@@ -226,6 +237,11 @@ DEMD_StatusTypeDef DEMD_IOcontrol(DEMD_IOControlTypedef io, int *input, int insi
 
             demdProcessTimerStart(1);
         }
+        else if(reportPeriodIndex > 2) 
+        {
+            DEBUG(ZONE_FUNCTION, ("DEMD_IOcontrol : If the cycle transmission is more than 2 minutes, notify the server of the departure time\r\n"));
+            demdProcessTimerStart(1);
+        }
         break; 
     case DEMD_REPORT_PREV_GPS:
         if (output != NULL && *outsize == sizeof(DEMD_GPSTypeDef))
@@ -234,19 +250,12 @@ DEMD_StatusTypeDef DEMD_IOcontrol(DEMD_IOControlTypedef io, int *input, int insi
             gpsdef->latitude = prevLatitude;
             gpsdef->longitude = prevLongitude;
         }
-        break;    
-    case DEMD_REPORT_PREV_LATITUDE:
-        if(output != NULL && *outsize > 0) 
+        break; 
+    case DEMD_REPORT_GET_ACTIVATION_STATUS:
+        if (output != NULL && *outsize > 0)
         {
-            //DEBUG(ZONE_FUNCTION, ("DEMD_IOcontrol : Latitude=%f\r\n", prevLatitude));
-            *output = prevLatitude;
-        }
-        break;
-    case DEMD_REPORT_PREV_LONGITUDE:           
-        if(output != NULL && *outsize > 0) 
-        {
-            //DEBUG(ZONE_FUNCTION, ("DEMD_IOcontrol : Longitude=%f\r\n", prevLongitude));
-            *output = prevLongitude;
+            *output = (appkeyactivation == true)? 1 : 0;
+            *outsize = 1;
         }
         break;
     default:
@@ -277,13 +286,31 @@ static int getReportCycleFromFlash()
     value = atoi(reportenv);
     if(value > 255 )
     {
-        value = 1;
+        value = 10;
     }
     
     DEBUG(ZONE_FUNCTION, ("report cycle %d\r\n", value));
 
     return value;
 }
+
+
+static bool IsAPPKeyWrittenToFlash()
+{
+    char *appkeyenv;
+    
+    appkeyenv = ef_get_env(SETTING_APPKEY_ACTIVATION);
+    
+    if(appkeyenv == "1")
+    {
+        DEBUG(ZONE_FUNCTION, ("Activation on\r\n"));
+    }
+    else
+        DEBUG(ZONE_FUNCTION, ("Not Activation on\r\n"));
+        
+    return (appkeyenv == "1")? true:false;
+}
+
 
 static bool getFinalPositionFromFlash(float *Latitude, float *Longitude)
 {
@@ -345,7 +372,7 @@ static int getReportTime(int valueofMin)
         DEBUG(ZONE_ERROR, ("getReportTime : invalided value (%d)@@@@\r\n", valueofMin));
         return MIN1;
     }
-#ifdef DEMD_IOT_SK_TEST_SPEC	
+#ifdef DEMD_IOT_SK_10SECONDS_TX_SPEC	
  
         // To support SK iot spec
         return 10000; // 10 secs
@@ -387,6 +414,12 @@ static void requestGPSData()
 
 static void OnDemdTimerEvent(void)
 {
+    if(reportPeriodIndex == 255)
+    {
+        DEBUG(ZONE_ERROR, ("OnDemdTimerEvent : This prevent iotGPS from transmitting a data to server @@@@ \r\n"));
+        return ;
+    }
+
     if(reportPeriodIndex)
        requestGPSData();
     else
@@ -572,7 +605,7 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
     else 
     {
         evaluateGPS(pdata, psize);
-#ifdef DEMD_IOT_SK_TEST_SPEC  
+#ifdef DEMD_IOT_SK_10SECONDS_TX_SPEC  
         if(1)
 #else
  #ifdef DEMO_IOT_DONTCARE_GPSDATA
@@ -600,7 +633,7 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
             iot.cumulativedistance = (short)distance;
             iot.statusofcar = getCarStatus(iot.speed, iot.speed);
           
-
+#ifndef DEMD_IOT_SK_10SECONDS_TX_SPEC
             // IotGPS-blackbox spec
             // if vehicle is in parking, no more reporting anymore after parking status is sent to server.
             // if status of vehicle may be changed, recover periodic transmission.
@@ -615,6 +648,7 @@ static bool parseMessage(char *pdata, int psize, char *pout, int *poutsize)
             }
             else 
                 carStatusStop == false;
+#endif
 
             prevSpeed = getSpeed();
             prevLatitude = getLatitude();
@@ -717,6 +751,24 @@ static bool storeReportCycle(int value)
 
     /* set and store the boot count number to Env */
     ef_set_env(SETTING_PERIOD_REPORT_CYCLE, c_report);
+    ef_save_env();
+    
+    return true;
+}
+
+static bool storeAppKeyActivated(bool bactive)
+{
+    DEBUG(ZONE_FUNCTION, ("storeAppKeyActivated : Activation is %d\r\n", bactive));
+
+    char c_report[2];
+    memset(c_report, 0, sizeof(c_report));
+    if(bactive)
+        strcpy(c_report, "1");
+    else 
+        strcpy(c_report, "0");
+
+    /* set and store the boot count number to Env */
+    ef_set_env(SETTING_APPKEY_ACTIVATION, c_report);
     ef_save_env();
     
     return true;

@@ -63,12 +63,12 @@ int cryptoCheck()
       0xf6, 0xec, 0xed, 0xd4, 0x19, 0xdb, 0x06, 0xc1
     };
 #else    
-    uint8_t text1[10];
+    uint8_t text1[12];
     uint8_t hash1[32];
     memset(text1, 0, sizeof(text1));
     memset(hash1, 0, sizeof(hash1));
     
-    getHash(text1, 4, hash1, 32);
+    getHash(text1, 12, hash1, 32);
 #endif 
     
     sha256_init(&ctx);
