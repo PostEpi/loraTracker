@@ -70,12 +70,12 @@ static void EXT_Init(void);
 static void IAP_Init(void);
 void SystemClock_Config(void);
 
-#define BOOT_NO_SECURITY     
+//#define BOOT_NO_SECURITY     
 
 
 #define BOOTLOADER_CHAR_BUFFER_SIZE   120
 //static const uint8_t *REQEUEST_COMMAND  =  "$BDRDP,DOWNLOAD,*54\r\n";
-static const uint8_t *REQEUEST_COMMAND  =  "sss\r\n";
+static const uint8_t *REQEUEST_COMMAND  =  "sss";
 
 void checkDownloadCmdFromExternal()
 {
@@ -86,14 +86,18 @@ void checkDownloadCmdFromExternal()
 
     while(1) 
     {
-        if (HAL_UART_Receive(&ExUartHandle, (uint8_t *)&ch, 1, 10) != HAL_TIMEOUT)
+        if (HAL_UART_Receive(&ExUartHandle, (uint8_t *)&ch, 1, 100) != HAL_TIMEOUT)
         {
 
             buffer[msgcount++] = ch;
-            if (ch == '\n')
+            //printf("0x%0.2x ", ch);
+            
+            if (ch == '\n' || msgcount > 2)
             {
                 bfound = false;
                 int i, cmdLength;
+
+                //Serial_PutString(&UartHandle, (uint8_t *)"checking!!!\r\n");
 
                 cmdLength = strlen((const char *)REQEUEST_COMMAND);
                 //if (!strncmp((const char *)buffer, (const char *)REQEUEST_COMMAND, cmdLength))
@@ -117,7 +121,7 @@ void checkDownloadCmdFromExternal()
             char key = 's';
             //HAL_UART_Transmit(&ExUartHandle, &key, sizeof(key), 0xffffffff);
             //Serial_PutString(&UartHandle, &key);
-            HAL_Delay(10);
+            //HAL_Delay(10);
         }
     }
 }
@@ -154,7 +158,8 @@ int main(void)
     else 
     {
       
-        if (((*(__IO uint32_t *)APPLICATION_ADDRESS) & 0xFFFFFFFF) == 0xFFFFFFFF)
+        //if (((*(__IO uint32_t *)APPLICATION_ADDRESS) & 0xFFFFFFFF) == 0xFFFFFFFF)
+        if(BSP_IsDownloadModeActivated())
         {
             // If the application memory area is 0xffffffff when security fails, 
             // the application has never been downloaded before. 
@@ -217,7 +222,6 @@ int main(void)
             //BSP_Appcation_Format();
             Serial_PutString(&UartHandle, (uint8_t *)"\r\nSecurity Booting failed\r\n");
             checkDownloadCmdFromExternal();
-              
         }
 #endif
         
@@ -393,7 +397,7 @@ static void EXT_Init(void)
         - Receive and transmit enabled
   */
     ExUartHandle.Instance = EXT_USARTx;
-    ExUartHandle.Init.BaudRate = 9600;
+    ExUartHandle.Init.BaudRate = 115200;
     ExUartHandle.Init.WordLength = UART_WORDLENGTH_8B;
     ExUartHandle.Init.StopBits = UART_STOPBITS_1;
     ExUartHandle.Init.Parity = UART_PARITY_NONE;

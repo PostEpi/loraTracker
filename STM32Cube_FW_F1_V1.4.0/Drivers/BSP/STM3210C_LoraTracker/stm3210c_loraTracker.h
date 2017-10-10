@@ -356,7 +356,7 @@ typedef enum
  * @brief input gpio
  */
 
-#define FACTORY_INPUT_PIN                      GPIO_PIN_3             /* PB.02*/
+#define FACTORY_INPUT_PIN                      GPIO_PIN_5             /* PB.02*/
 #define FACTORY_INPUT_GPIO_PORT                GPIOB
 #define FACTORY_INPUT_GPIO_CLK_ENABLE()        __HAL_RCC_GPIOB_CLK_ENABLE()
 #define FACTORY_INPUT_GPIO_CLK_DISABLE()       __HAL_RCC_GPIOB_CLK_DISABLE()

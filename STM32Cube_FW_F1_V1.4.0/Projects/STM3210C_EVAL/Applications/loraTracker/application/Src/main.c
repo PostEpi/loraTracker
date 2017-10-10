@@ -141,6 +141,9 @@ static void USER_Process()
                         //     if(buffer[cmdLength] == '0')  DebugFlag = 0;
                         //     else DebugFlag = 1<<9;
                         // }
+                        loracmdbypass = true;
+                        DebugFlag = 0xf;
+                        
                         BSP_Lora_Wakeup();
                         LBPRINTF(&buffer[cmdLength], msgcount-cmdLength);
                         break;
@@ -304,14 +307,13 @@ int main(void)
 
     /* Initialize BSP input pin */
     BSP_Input_Init(INPUT_FACTORY, INPUT_MODE_GPIO);
-    if(BSP_Input_GetState(INPUT_FACTORY) == 1)
+    if(BSP_Input_GetState(INPUT_FACTORY) == 0)
     {
         loracmdbypass = true;
         DebugFlag = 0xf;
     }
     
-    DebugFlag = 0xf;
-
+    //DebugFlag = 0xf;
 #endif
 
 #ifndef USE_DEBUGLOG_DRVIER
@@ -361,18 +363,20 @@ int main(void)
     BSP_LED_Off(LED_GREEN);
 
 
-
-    // while(1)
-    // {
-    //     if(BSP_Input_GetState(INPUT_FACTORY))
-    //     {
-    //         printf("\n\r *** High ***\n\r\n\r");
-    //     }
-    //     else 
-    //     {
-    //         printf("\n\r *** Low ***\n\r\n\r");
-    //     }
-    // }
+#if 0
+    while(1)
+    {
+        if(BSP_Input_GetState(INPUT_FACTORY))
+        {
+            printf("\n\r *** High ***\n\r\n\r");
+        }
+        else 
+        {
+            printf("\n\r *** Low ***\n\r\n\r");
+        }
+    }
+#endif
+    
 #if 0
     int status = 0, sizeofstatus = 1;
     DEMD_IOcontrol(DEMD_REPORT_GET_ACTIVATION_STATUS, NULL, 0, &status, &sizeofstatus);

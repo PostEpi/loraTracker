@@ -689,7 +689,7 @@ void BSP_Input_Init(Input_TypeDef InputPin, InputMode_TypeDef Input_Mode)
 
     /* Configure Push input pin as input */
     gpioinitstruct.Pin = INPUT_PIN[InputPin];
-    gpioinitstruct.Pull = GPIO_NOPULL;
+    gpioinitstruct.Pull = GPIO_PULLUP;
     gpioinitstruct.Speed = GPIO_SPEED_FREQ_HIGH;
 
     if (Input_Mode == INPUT_MODE_GPIO)

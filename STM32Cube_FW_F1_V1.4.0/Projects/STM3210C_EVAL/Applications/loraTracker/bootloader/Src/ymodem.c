@@ -567,7 +567,7 @@ COM_StatusTypeDef Ymodem_Receive(UART_HandleTypeDef *pUartHandle, uint32_t *p_si
                         Serial_PutByte(&UartHandle, CRC16); /* Ask for a packet */
 
 #if 1
-                    if(timeout > 30) 
+                    if(timeout > 120) 
                     {
                         result = COM_TIMEOUT;
                         if (bLogToUartEnable)
